@@ -44,6 +44,14 @@ const userSchema = new Schema(
       default: 0,
       enum: [0, 1, 2], // 0: inactive, 1: active, 2: suspended
     },
+    registrationComplete: {
+      type: Boolean,
+      default: false,
+    },
+    profileImage: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -60,6 +68,7 @@ userSchema.methods.createAccessToken = function () {
     {
       id: this._id,
       phone: this.phone,
+      role:'customer'
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
@@ -68,7 +77,7 @@ userSchema.methods.createAccessToken = function () {
 
 userSchema.methods.createRefreshToken = function () {
   return jwt.sign(
-    { id: this._id, phone: this.phone },
+    { id: this._id, phone: this.phone,role:'customer' },
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",

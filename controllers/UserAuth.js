@@ -41,27 +41,35 @@ const auth = async (req, res) => {
 
   try {
     let user = await User.findOne({ phone });
-
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes from now
 
     if (user) {
+      // Existing user - update OTP
       user.otp = otp;
       user.otpExpires = otpExpires;
       await user.save();
-      await sendOtp(phone, otp);
-
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        message: "OTP sent successfully",
-        data: { existingUser: true },
+    } else {
+      // New user - create temporary user record
+      user = new User({
+        phone,
+        otp,
+        otpExpires,
+        registrationComplete: false
       });
+      await user.save();
     }
+
+    // Send OTP for both new and existing users
+    await sendOtp(phone, otp);
 
     return res.status(StatusCodes.OK).json({
       success: true,
-      message: "User not registered",
-      data: { existingUser: false },
+      message: "OTP sent successfully",
+      data: {
+        existingUser: user.registrationComplete,
+        registrationComplete: user.registrationComplete
+      },
     });
   } catch (error) {
     console.error("Auth error:", error);
@@ -76,41 +84,57 @@ const auth = async (req, res) => {
 const register = async (req, res) => {
   const { firstName, lastName, email, phone } = req.body;
 
-  if (!phone || !firstName || !email) {
+  if (!phone || !firstName) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
-      message: "Phone, firstName, and email are required",
+      message: "Phone and firstName are required",
     });
   }
 
   try {
-    const existingUser = await User.findOne({ $or: [{ phone }, { email }] });
-    if (existingUser) {
+    // Find the user by phone number
+    let user = await User.findOne({ phone });
+
+    if (!user) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: "User already exists with this phone or email",
+        message: "User not found. Please verify your phone number first.",
       });
     }
 
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 2 * 60 * 1000);
+    if (user.registrationComplete) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "User is already registered",
+      });
+    }
 
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      phone,
-      otp,
-      otpExpires,
-    });
+    // Update user information
+    user.firstName = firstName;
+    user.lastName = lastName || '';
+    user.email = email || '';
+    user.registrationComplete = true;
 
     await user.save();
-    await sendOtp(phone, otp);
 
-    return res.status(StatusCodes.CREATED).json({
+    const accessToken = user.createAccessToken();
+    const refreshToken = user.createRefreshToken();
+
+    return res.status(StatusCodes.OK).json({
       success: true,
       message: "User registered successfully",
-      data: { userId: user._id },
+      data: {
+        user: {
+          id: user._id,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          registrationComplete: user.registrationComplete
+        },
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      },
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -166,13 +190,15 @@ const verifyOtp = async (req, res) => {
 
     return res.status(StatusCodes.OK).json({
       success: true,
-      message: "User logged in successfully",
+      message: "OTP verified successfully",
       data: {
         user: {
           id: user._id,
           phone: user.phone,
-          firstName: user.firstName,
-          email: user.email,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          registrationComplete: user.registrationComplete
         },
         access_token: accessToken,
         refresh_token: refreshToken,
