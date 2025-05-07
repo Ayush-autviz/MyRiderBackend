@@ -4,6 +4,7 @@ const express = require("express");
 const http = require("http");
 const path = require("path");
 const socketIo = require("socket.io");
+const cors = require("cors");
 
 // Routers
 const authRouter = require("./routes/auth");
@@ -21,15 +22,16 @@ const handleSocketConnection = require("./controllers/Socket");
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use(express.urlencoded({ extended: true })); // For parsing multipart/form-data
 
 // Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "Uploads")));
 
 // Swagger setup
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get('/swagger.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/swagger.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);
 });
 
@@ -44,7 +46,7 @@ app.use((req, res, next) => {
 });
 
 // Welcome route
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.send(`
     <html>
       <head>
