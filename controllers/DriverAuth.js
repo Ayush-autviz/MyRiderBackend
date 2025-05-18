@@ -527,6 +527,44 @@ const goOnlineWithExtra = async (req, res) => {
   }
 };
 
+// POST /api/driver/go-offline
+const goOffline = async (req, res) => {
+  try {
+    const { driverId } = req.body;
+
+    if (!driverId) {
+      return res.status(400).json({ message: "Driver ID is required" });
+    }
+
+    const driver = await Driver.findById(driverId);
+
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    driver.isAvailable = false;
+    driver.withExtraDriver = false;
+    driver.lastHeartbeat = null;
+
+    // Clear any live requests
+    driver.liveRequests = [];
+
+    await driver.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Driver is now offline",
+      driver
+    });
+  } catch (error) {
+    console.error("Error in go-offline:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+};
+
 // Update driver status from ApprovalPending to active
 const updateDriverStatus = async (req, res) => {
   try {
@@ -741,6 +779,7 @@ module.exports = {
   submitVehicleDetails,
   goOnline,
   goOnlineWithExtra,
+  goOffline,
   verifyOtp,
   updateDriverStatus,
   editVehicleDetails,

@@ -59,6 +59,20 @@ const rideSchema = new mongoose.Schema({
   distance: {
     type: Number,
   },
+  rating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    default: null,
+  },
+  review: {
+    type: String,
+    default: null,
+  },
+  isRated: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -76,13 +76,14 @@ const handleSocketConnection = (io) => {
         try {
           await Driver.findByIdAndUpdate(user.id, {
             isAvailable: false,
+            withExtraDriver: false,
             lastHeartbeat: null,
             liveRequests: [],
           });
           socket.leave("availableDrivers");
-          console.log(`Driver ${user.id} is now unavailable.`);
+          console.log(`Driver ${user.id} is now offline.`);
         } catch (error) {
-          console.error("Error setting driver unavailable:", error);
+          console.error("Error setting driver offline:", error);
         }
       });
 

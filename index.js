@@ -13,6 +13,7 @@ const vehicleRouter = require("./routes/vehicle");
 const rideRouter = require("./routes/ride");
 const rideStatusRouter = require("./routes/rideStatus");
 const userProfileRouter = require("./routes/userProfile");
+const ratingRouter = require("./routes/rating");
 
 const connectDB = require("./config/connect");
 const { swaggerSpec, swaggerUi } = require("./config/swagger");
@@ -81,6 +82,7 @@ app.use("/vehicle", vehicleRouter);
 app.use("/ride", rideRouter);
 app.use("/ride-status", rideStatusRouter);
 app.use("/user/profile", userProfileRouter);
+app.use("/rating", ratingRouter);
 
 const start = async () => {
   try {

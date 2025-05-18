@@ -632,3 +632,49 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /driverAuth/go-offline:
+ *   post:
+ *     summary: Set driver status to offline
+ *     tags: [DriverAuth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - driverId
+ *             properties:
+ *               driverId:
+ *                 type: string
+ *                 description: Driver ID
+ *     responses:
+ *       200:
+ *         description: Driver is now offline
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Driver is now offline
+ *                 driver:
+ *                   $ref: '#/components/schemas/Driver'
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Driver not found
+ *       500:
+ *         description: Server error
+ */

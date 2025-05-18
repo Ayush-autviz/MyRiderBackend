@@ -13,6 +13,7 @@ const {
   uploadDocuments,
   goOnline,
   goOnlineWithExtra,
+  goOffline,
   updateDriverStatus,
   editVehicleDetails,
   editDriverDocuments,
@@ -55,6 +56,7 @@ router.put(
 
 router.post("/go-online", goOnline);
 router.post("/go-online-with-extra", goOnlineWithExtra);
+router.post("/go-offline", goOffline);
 
 // Update driver status from ApprovalPending to active
 router.put("/drivers/:driverId/update-status", updateDriverStatus);
