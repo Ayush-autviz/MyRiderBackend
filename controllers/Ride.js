@@ -1,24 +1,22 @@
-const Ride = require('../models/Ride');
-const User = require('../models/User');
-const Vehicle = require('../models/Vehicle');
-const Driver = require('../models/Driver');
-const geolib = require('geolib');
-const { StatusCodes } = require('http-status-codes');
+const Ride = require("../models/Ride");
+const User = require("../models/User");
+const Vehicle = require("../models/Vehicle");
+const Driver = require("../models/Driver");
+const geolib = require("geolib");
+const { StatusCodes } = require("http-status-codes");
 
 // Create a new ride
 const createRide = async (req, res) => {
+  console.log(req.body, "body");
+  console.log(" api hit");
   try {
-    const {
-      pickupLocation,
-      destination,
-      vehicleId
-    } = req.body;
+    const { pickupLocation, destination, vehicleId } = req.body;
 
     // Validate required fields
     if (!pickupLocation || !destination || !vehicleId) {
       return res.status(400).json({
         success: false,
-        message: 'Pickup location, destination, and vehicle type are required'
+        message: "Pickup location, destination, and vehicle type are required",
       });
     }
 
@@ -27,7 +25,7 @@ const createRide = async (req, res) => {
     if (!vehicle) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Invalid vehicle type'
+        message: "Invalid vehicle type",
       });
     }
 
@@ -35,11 +33,11 @@ const createRide = async (req, res) => {
     const distanceMeters = geolib.getDistance(
       {
         latitude: pickupLocation.coordinates[1],
-        longitude: pickupLocation.coordinates[0]
+        longitude: pickupLocation.coordinates[0],
       },
       {
         latitude: destination.coordinates[1],
-        longitude: destination.coordinates[0]
+        longitude: destination.coordinates[0],
       }
     );
     const distanceKm = distanceMeters / 1000;
@@ -55,7 +53,7 @@ const createRide = async (req, res) => {
       vehicle: vehicle._id, // Store the vehicle ID
       distance: distanceKm,
       fare: fare,
-      status: 'searchingDriver' // Use searchingDriver status instead of pending
+      status: "searchingDriver", // Use searchingDriver status instead of pending
     });
 
     await ride.save();
@@ -69,12 +67,12 @@ const createRide = async (req, res) => {
         id: vehicle._id,
         type: vehicle.type,
         description: vehicle.description,
-        pricePerKm: vehicle.pricePerKm
+        pricePerKm: vehicle.pricePerKm,
       },
       distance: distanceKm,
       fare: fare,
       status: ride.status,
-      createdAt: ride.createdAt
+      createdAt: ride.createdAt,
     };
 
     // Emit socket event to find drivers (previously in bookRide socket event)
@@ -83,18 +81,21 @@ const createRide = async (req, res) => {
       const user = req.user;
 
       // Determine if extra driver is needed
-      const needsExtraDriver = vehicle.type.includes('WithExtraDriver');
+      const needsExtraDriver = vehicle.type.includes("WithExtraDriver");
 
       // Find nearby drivers matching vehicle type and extra driver requirement
       const nearbyDrivers = await Driver.find({
         isAvailable: true,
-        vehicleType: vehicle.type.includes('car') ? 'car' : 'bike',
+        vehicleType: vehicle.type.includes("car") ? "car" : "bike",
         withExtraDriver: needsExtraDriver,
         currentRide: null, // Exclude drivers with active rides
         currentLocation: {
           $geoWithin: {
             $centerSphere: [
-              [ride.pickupLocation.coordinates[0], ride.pickupLocation.coordinates[1]],
+              [
+                ride.pickupLocation.coordinates[0],
+                ride.pickupLocation.coordinates[1],
+              ],
               5 / 6378.1, // 5km radius
             ],
           },
@@ -102,9 +103,9 @@ const createRide = async (req, res) => {
       });
 
       // Emit searchingDriver event to customer
-      socket.to(`customer_${user.id}`).emit('searchingDriver', {
+      socket.to(`customer_${user.id}`).emit("searchingDriver", {
         rideId: ride._id,
-        message: 'Searching for available drivers nearby',
+        message: "Searching for available drivers nearby",
         rideDetails: {
           customerId: user.id,
           pickupLocation: ride.pickupLocation,
@@ -116,10 +117,14 @@ const createRide = async (req, res) => {
       });
 
       if (nearbyDrivers.length === 0) {
-        ride.status = 'noDriversFound';
+        ride.status = "noDriversFound";
         await ride.save();
-        socket.to(`customer_${user.id}`).emit('noDriversAvailable', { message: 'No drivers available nearby' });
-        console.log(`Ride ${ride._id} marked as noDriversFound: no drivers available`);
+        socket.to(`customer_${user.id}`).emit("noDriversAvailable", {
+          message: "No drivers available nearby",
+        });
+        console.log(
+          `Ride ${ride._id} marked as noDriversFound: no drivers available`
+        );
       } else {
         // Send ride request to nearby drivers and add to liveRequests
         const requestExpiration = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
@@ -135,7 +140,7 @@ const createRide = async (req, res) => {
           });
 
           // Send socket event
-          socket.to(`driver_${driver._id}`).emit('rideRequest', {
+          socket.to(`driver_${driver._id}`).emit("rideRequest", {
             rideId: ride._id,
             customerId: user.id,
             pickupLocation: ride.pickupLocation,
@@ -150,48 +155,56 @@ const createRide = async (req, res) => {
         setTimeout(async () => {
           try {
             const stillPending = await Ride.findById(ride._id);
-            if (stillPending && stillPending.status === 'searchingDriver') {
-              stillPending.status = 'noDriversFound';
+            if (stillPending && stillPending.status === "searchingDriver") {
+              stillPending.status = "noDriversFound";
               await stillPending.save();
-              socket.to(`customer_${user.id}`).emit('noDriversFound', {
+              socket.to(`customer_${user.id}`).emit("noDriversFound", {
                 rideId: ride._id,
-                message: 'No drivers accepted the ride within 5 minutes',
+                message: "No drivers accepted the ride within 5 minutes",
               });
 
               // Remove ride from liveRequests of all drivers
               const driversWithRequest = await Driver.find({
-                'liveRequests.rideId': ride._id,
+                "liveRequests.rideId": ride._id,
               });
-              await Promise.all(driversWithRequest.map(async (driver) => {
-                await Driver.findByIdAndUpdate(driver._id, {
-                  $pull: { liveRequests: { rideId: ride._id } },
-                });
-                socket.to(`driver_${driver._id}`).emit('rideTaken', { rideId: ride._id });
-              }));
-              console.log(`Ride ${ride._id} marked as noDriversFound after 5 minutes`);
+              await Promise.all(
+                driversWithRequest.map(async (driver) => {
+                  await Driver.findByIdAndUpdate(driver._id, {
+                    $pull: { liveRequests: { rideId: ride._id } },
+                  });
+                  socket
+                    .to(`driver_${driver._id}`)
+                    .emit("rideTaken", { rideId: ride._id });
+                })
+              );
+              console.log(
+                `Ride ${ride._id} marked as noDriversFound after 5 minutes`
+              );
             }
           } catch (error) {
-            console.error('Error cleaning up liveRequests:', error);
+            console.error("Error cleaning up liveRequests:", error);
           }
         }, 5 * 60 * 1000); // 5 minutes
 
-        console.log(`Ride ${ride._id} created for customer ${user.id}, sent to ${nearbyDrivers.length} drivers`);
+        console.log(
+          `Ride ${ride._id} created for customer ${user.id}, sent to ${nearbyDrivers.length} drivers`
+        );
       }
     }
 
     res.status(StatusCodes.CREATED).json({
       success: true,
-      message: 'Ride created successfully',
+      message: "Ride created successfully",
       data: {
-        ride: rideResponse
-      }
+        ride: rideResponse,
+      },
     });
   } catch (error) {
-    console.error('Error creating ride:', error);
+    console.error("Error creating ride:", error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Server error while creating ride',
-      error: error.message
+      message: "Server error while creating ride",
+      error: error.message,
     });
   }
 };
@@ -202,13 +215,13 @@ const getRideById = async (req, res) => {
     const { rideId } = req.params;
 
     const ride = await Ride.findById(rideId)
-      .populate('driver', 'firstName lastName phone vehicleDetails')
-      .populate('vehicle');
+      .populate("driver", "firstName lastName phone vehicleDetails")
+      .populate("vehicle");
 
     if (!ride) {
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
-        message: 'Ride not found'
+        message: "Ride not found",
       });
     }
 
@@ -216,7 +229,7 @@ const getRideById = async (req, res) => {
     if (ride.customer.toString() !== req.user.id) {
       return res.status(StatusCodes.FORBIDDEN).json({
         success: false,
-        message: 'Unauthorized: Ride does not belong to this user'
+        message: "Unauthorized: Ride does not belong to this user",
       });
     }
 
@@ -225,32 +238,34 @@ const getRideById = async (req, res) => {
       id: ride._id,
       pickupLocation: ride.pickupLocation,
       destination: ride.destination,
-      vehicle: ride.vehicle ? {
-        id: ride.vehicle._id,
-        type: ride.vehicle.type,
-        description: ride.vehicle.description,
-        pricePerKm: ride.vehicle.pricePerKm
-      } : null,
+      vehicle: ride.vehicle
+        ? {
+            id: ride.vehicle._id,
+            type: ride.vehicle.type,
+            description: ride.vehicle.description,
+            pricePerKm: ride.vehicle.pricePerKm,
+          }
+        : null,
       distance: ride.distance,
       fare: ride.fare,
       status: ride.status,
       driver: ride.driver,
       createdAt: ride.createdAt,
-      updatedAt: ride.updatedAt
+      updatedAt: ride.updatedAt,
     };
 
     res.status(StatusCodes.OK).json({
       success: true,
       data: {
-        ride: rideResponse
-      }
+        ride: rideResponse,
+      },
     });
   } catch (error) {
-    console.error('Error fetching ride:', error);
+    console.error("Error fetching ride:", error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Server error while fetching ride',
-      error: error.message
+      message: "Server error while fetching ride",
+      error: error.message,
     });
   }
 };
@@ -259,28 +274,30 @@ const getRideById = async (req, res) => {
 const getUserRides = async (req, res) => {
   try {
     const rides = await Ride.find({ customer: req.user.id })
-      .populate('driver', 'firstName lastName phone vehicleDetails')
-      .populate('vehicle')
+      .populate("driver", "firstName lastName phone vehicleDetails")
+      .populate("vehicle")
       .sort({ createdAt: -1 });
 
     // Map rides to include vehicle details
-    const ridesWithVehicleDetails = rides.map(ride => {
+    const ridesWithVehicleDetails = rides.map((ride) => {
       return {
         id: ride._id,
         pickupLocation: ride.pickupLocation,
         destination: ride.destination,
-        vehicle: ride.vehicle ? {
-          id: ride.vehicle._id,
-          type: ride.vehicle.type,
-          description: ride.vehicle.description,
-          pricePerKm: ride.vehicle.pricePerKm
-        } : null,
+        vehicle: ride.vehicle
+          ? {
+              id: ride.vehicle._id,
+              type: ride.vehicle.type,
+              description: ride.vehicle.description,
+              pricePerKm: ride.vehicle.pricePerKm,
+            }
+          : null,
         distance: ride.distance,
         fare: ride.fare,
         status: ride.status,
         driver: ride.driver,
         createdAt: ride.createdAt,
-        updatedAt: ride.updatedAt
+        updatedAt: ride.updatedAt,
       };
     });
 
@@ -288,15 +305,15 @@ const getUserRides = async (req, res) => {
       success: true,
       data: {
         rides: ridesWithVehicleDetails,
-        count: ridesWithVehicleDetails.length
-      }
+        count: ridesWithVehicleDetails.length,
+      },
     });
   } catch (error) {
-    console.error('Error fetching user rides:', error);
+    console.error("Error fetching user rides:", error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Server error while fetching rides',
-      error: error.message
+      message: "Server error while fetching rides",
+      error: error.message,
     });
   }
 };
@@ -304,5 +321,5 @@ const getUserRides = async (req, res) => {
 module.exports = {
   createRide,
   getRideById,
-  getUserRides
+  getUserRides,
 };

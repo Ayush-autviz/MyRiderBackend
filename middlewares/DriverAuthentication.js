@@ -9,7 +9,7 @@ const authDriver = async (req, res, next) => {
   const token = authHeader.split(" ")[1];
   try {
     const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    req.user = { id: payload.id, phone: payload.phone,role:payload.role };
+    req.driver = { id: payload.id, phone: payload.phone, role: payload.role };
     req.socket = req.io;
 
     const user = await Driver.findById(payload.id);
@@ -20,7 +20,7 @@ const authDriver = async (req, res, next) => {
 
     next();
   } catch (error) {
-    throw new UnauthenticatedError("Authentication invalid");
+    console.log(error);
   }
 };
 

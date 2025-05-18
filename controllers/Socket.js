@@ -27,7 +27,7 @@ const handleSocketConnection = (io) => {
         if (!user) {
           return next(new Error("Authentication invalid: User not found"));
         }
-        socket.user = { id: payload.id, role: user.role };
+        socket.user = { id: payload.id, role: payload.role };
         next();
       } else if (payload.role === "customer") {
         const user = await User.findById(payload.id);
@@ -51,6 +51,7 @@ const handleSocketConnection = (io) => {
      * DRIVER EVENTS
      */
     if (user.role === "driver") {
+      console.log("Driver events");
       // Driver goes online
       socket.on("goOnDuty", async (coords) => {
         try {
@@ -59,9 +60,9 @@ const handleSocketConnection = (io) => {
             currentLocation: {
               type: "Point",
               coordinates: [coords.longitude, coords.latitude],
+              lastUpdated: new Date(),
             },
             lastHeartbeat: new Date(),
-            "currentLocation.lastUpdated": new Date(),
           });
           socket.join("availableDrivers");
           console.log(`Driver ${user.id} is now available.`);
@@ -89,14 +90,12 @@ const handleSocketConnection = (io) => {
       socket.on("updateLocation", async (coords) => {
         try {
           await Driver.findByIdAndUpdate(user.id, {
-            $set: {
-              currentLocation: {
-                type: "Point",
-                coordinates: [coords.longitude, coords.latitude],
-              },
-              lastHeartbeat: new Date(),
-              "currentLocation.lastUpdated": new Date(),
+            currentLocation: {
+              type: "Point",
+              coordinates: [coords.longitude, coords.latitude],
+              lastUpdated: new Date(),
             },
+            lastHeartbeat: new Date(),
           });
 
           // Notify subscribed customers
