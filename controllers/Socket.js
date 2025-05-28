@@ -52,6 +52,11 @@ const handleSocketConnection = (io) => {
      */
     if (user.role === "driver") {
       console.log("Driver events");
+
+      // Driver joins their own room automatically on connection
+      socket.join(`driver_${user.id}`);
+      console.log(`Driver ${user.id} joined their personal room`);
+
       // Driver goes online
       socket.on("goOnDuty", async (coords) => {
         try {
@@ -68,6 +73,32 @@ const handleSocketConnection = (io) => {
           console.log(`Driver ${user.id} is now available.`);
         } catch (error) {
           console.error("Error setting driver available:", error);
+        }
+      });
+
+      // Driver joins a specific ride room
+      socket.on("joinRideRoom", async (rideId) => {
+        try {
+          const ride = await Ride.findById(rideId);
+          if (!ride) {
+            socket.emit("error", { message: "Ride not found" });
+            return;
+          }
+
+          if (ride.driver && ride.driver.toString() === user.id) {
+            socket.join(`ride_${rideId}`);
+            console.log(
+              `Driver ${user.id} joined ride room for ride ${rideId}`
+            );
+            socket.emit("roomJoined", { room: `ride_${rideId}` });
+          } else {
+            socket.emit("error", {
+              message: "Not authorized to join this ride room",
+            });
+          }
+        } catch (error) {
+          console.error("Error joining ride room:", error);
+          socket.emit("error", { message: "Error joining ride room" });
         }
       });
 
@@ -223,8 +254,39 @@ const handleSocketConnection = (io) => {
      * CUSTOMER EVENTS
      */
     if (user.role === "customer") {
+      // Customer joins their own room automatically on connection
+      socket.join(`customer_${user.id}`);
+      console.log(`Customer ${user.id} joined their personal room`);
+
+      // Customer joins a specific ride room
+      socket.on("joinRideRoom", async (rideId) => {
+        try {
+          const ride = await Ride.findById(rideId);
+          if (!ride) {
+            socket.emit("error", { message: "Ride not found" });
+            return;
+          }
+
+          if (ride.customer.toString() === user.id) {
+            socket.join(`ride_${rideId}`);
+            console.log(
+              `Customer ${user.id} joined ride room for ride ${rideId}`
+            );
+            socket.emit("roomJoined", { room: `ride_${rideId}` });
+          } else {
+            socket.emit("error", {
+              message: "Not authorized to join this ride room",
+            });
+          }
+        } catch (error) {
+          console.error("Error joining ride room:", error);
+          socket.emit("error", { message: "Error joining ride room" });
+        }
+      });
+
       // Customer books a ride
       socket.on("bookRide", async (rideId) => {
+        console.log("book ride", rideId);
         try {
           // Fetch ride details
           const ride = await Ride.findById(rideId).populate("vehicle");
@@ -244,6 +306,8 @@ const handleSocketConnection = (io) => {
             });
             return;
           }
+
+          log("hii");
 
           // Validate vehicle
           const vehicle = await Vehicle.findById(ride.vehicle);

@@ -7,8 +7,6 @@ const { StatusCodes } = require("http-status-codes");
 
 // Create a new ride
 const createRide = async (req, res) => {
-  console.log(req.body, "body");
-  console.log(" api hit");
   try {
     const { pickupLocation, destination, vehicleId } = req.body;
 
@@ -20,8 +18,12 @@ const createRide = async (req, res) => {
       });
     }
 
+    console.log(pickupLocation, destination, vehicleId);
+
     // Validate vehicle
     const vehicle = await Vehicle.findById(vehicleId);
+
+    console.log(vehicle, "vehicle");
     if (!vehicle) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
@@ -55,6 +57,8 @@ const createRide = async (req, res) => {
       fare: fare,
       status: "searchingDriver", // Use searchingDriver status instead of pending
     });
+
+    console.log(ride, "ride");
 
     await ride.save();
 
@@ -93,14 +97,16 @@ const createRide = async (req, res) => {
           $geoWithin: {
             $centerSphere: [
               [
-                ride.pickupLocation.coordinates[0],
                 ride.pickupLocation.coordinates[1],
+                ride.pickupLocation.coordinates[0],
               ],
               5 / 6378.1, // 5km radius
             ],
           },
         },
       });
+
+      console.log(nearbyDrivers, "nearby");
 
       // Emit searchingDriver event to customer
       socket.to(`customer_${user.id}`).emit("searchingDriver", {

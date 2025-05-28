@@ -193,6 +193,14 @@
  *       }
  *       ```
  *
+ *       **Common Events:**
+ *
+ *       1. **joinRideRoom** - Emitted by either customer or driver to join a specific ride room
+ *          - Payload: `"ride-id"`
+ *          - Response events:
+ *            - `roomJoined` - Emitted when successfully joined the room
+ *            - `error` - Emitted when an error occurs
+ *
  *       **Customer Events:**
  *
  *       1. **bookRide** - Emitted by the customer to book a ride

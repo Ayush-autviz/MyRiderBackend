@@ -3,7 +3,8 @@ const User = require("../models/User");
 
 const auth = async (req, res, next) => {
   console.log("auth middleware");
-  const authHeader = req.headers.authorization;
+  const authHeader = req?.headers?.authorization;
+  console.log(authHeader, "authHeader");
   if (!authHeader || !authHeader.startsWith("Bearer")) {
     return res.status(401).json({ message: "Unauthorized" });
   }
@@ -22,6 +23,7 @@ const auth = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.log(error, "error");
     return res.status(401).json({ message: "Authentication invalid" });
   }
 };
