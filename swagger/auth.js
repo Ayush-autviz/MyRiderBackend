@@ -34,7 +34,7 @@
  *           description: Whether the user's registration is complete
  *         profileStatus:
  *           type: number
- *           description: User's profile status (0: inactive, 1: active, 2: suspended)
+ *           description: "User's profile status (0: inactive, 1: active, 2: suspended)"
  *         profileImage:
  *           type: string
  *           description: URL to the user's profile image
