@@ -41,8 +41,8 @@ const userSchema = new Schema(
     },
     profileStatus: {
       type: Number,
-      default: 0,
-      enum: [0, 1, 2], // 0: inactive, 1: active, 2: suspended
+      default: 1,
+      enum: [1, 2], // 0: inactive, 1: active, 2: suspended
     },
     registrationComplete: {
       type: Boolean,

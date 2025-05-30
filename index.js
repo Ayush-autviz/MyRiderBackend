@@ -14,6 +14,7 @@ const rideRouter = require("./routes/ride");
 const rideStatusRouter = require("./routes/rideStatus");
 const userProfileRouter = require("./routes/userProfile");
 const ratingRouter = require("./routes/rating");
+const adminRouter = require("./routes/admin");
 
 const connectDB = require("./config/connect");
 const { swaggerSpec, swaggerUi } = require("./config/swagger");
@@ -83,6 +84,7 @@ app.use("/ride", rideRouter);
 app.use("/ride-status", rideStatusRouter);
 app.use("/user/profile", userProfileRouter);
 app.use("/rating", ratingRouter);
+app.use("/admin", adminRouter);
 
 const start = async () => {
   try {
@@ -93,10 +95,10 @@ const start = async () => {
     await seedVehicles();
 
     // Start the server
-    server.listen(process.env.PORT || 3000, () =>
+    server.listen(process.env.PORT || 4000, () =>
       console.log(
         `HTTP server is running on port http://localhost:${
-          process.env.PORT || 3000
+          process.env.PORT || 4000
         }`
       )
     );
