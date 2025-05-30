@@ -303,6 +303,7 @@ const submitVehicleDetails = async (req, res) => {
 
 // Upload Documents
 const uploadDocuments = async (req, res) => {
+  console.log("upload documnets");
   try {
     const { driverId } = req.params;
     const files = req.files;
@@ -554,13 +555,13 @@ const goOffline = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Driver is now offline",
-      driver
+      driver,
     });
   } catch (error) {
     console.error("Error in go-offline:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -620,6 +621,7 @@ const updateDriverStatus = async (req, res) => {
 
 // Edit vehicle details
 const editVehicleDetails = async (req, res) => {
+  console.log("editing driver");
   try {
     const driver = await Driver.findById(req.user.id);
     if (!driver) {
@@ -697,6 +699,7 @@ const editVehicleDetails = async (req, res) => {
 
 // Edit driver documents
 const editDriverDocuments = async (req, res) => {
+  console.log("editing documents");
   try {
     const driver = await Driver.findById(req.user.id);
     if (!driver) {
