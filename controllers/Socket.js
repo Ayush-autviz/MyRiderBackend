@@ -144,77 +144,6 @@ const handleSocketConnection = (io) => {
         }
       });
 
-      // Driver accepts ride
-      socket.on("acceptRide", async (rideId) => {
-        try {
-          const ride = await Ride.findById(rideId).populate("vehicle");
-          if (!ride) {
-            socket.emit("error", { message: "Ride not found" });
-            return;
-          }
-          if (ride.status !== "searchingDriver") {
-            socket.emit("error", { message: "Ride is no longer available" });
-            return;
-          }
-
-          const driver = await Driver.findById(user.id);
-          if (!driver.liveRequests.some((req) => req.rideId.equals(rideId))) {
-            socket.emit("error", {
-              message: "Ride request not assigned to you",
-            });
-            return;
-          }
-
-          // Calculate fare based on distance and vehicle pricePerKm
-          if (ride.distance && ride.vehicle.pricePerKm) {
-            ride.fare = ride.distance * ride.vehicle.pricePerKm;
-          }
-
-          // Update ride and driver
-          ride.driver = user.id;
-          ride.status = "accepted";
-          await ride.save();
-
-          await Driver.findByIdAndUpdate(user.id, {
-            isAvailable: false,
-            currentRide: rideId,
-            $pull: { liveRequests: { rideId } },
-          });
-
-          // Notify customer
-          socket.to(`customer_${ride.customer}`).emit("rideAccepted", {
-            rideId,
-            driverId: user.id,
-            driver: await Driver.findById(user.id).select(
-              "firstName lastName vehicleDetails currentLocation"
-            ),
-          });
-
-          // Subscribe customer to driver's location
-          socket
-            .to(`customer_${ride.customer}`)
-            .emit("subscribeToDriverLocation", user.id);
-
-          // Notify other drivers that ride is taken and remove from their liveRequests
-          const nearbyDrivers = await Driver.find({
-            "liveRequests.rideId": rideId,
-          });
-          nearbyDrivers.forEach(async (nearbyDriver) => {
-            socket
-              .to(`driver_${nearbyDriver._id}`)
-              .emit("rideTaken", { rideId });
-            await Driver.findByIdAndUpdate(nearbyDriver._id, {
-              $pull: { liveRequests: { rideId } },
-            });
-          });
-
-          console.log(`Driver ${user.id} accepted ride ${rideId}`);
-        } catch (error) {
-          console.error("Error accepting ride:", error);
-          socket.emit("error", { message: "Error accepting ride" });
-        }
-      });
-
       // Heartbeat check
       const checkHeartbeat = setInterval(async () => {
         try {
@@ -307,7 +236,7 @@ const handleSocketConnection = (io) => {
             return;
           }
 
-          log("hii");
+          console.log("hii");
 
           // Validate vehicle
           const vehicle = await Vehicle.findById(ride.vehicle);
@@ -338,17 +267,17 @@ const handleSocketConnection = (io) => {
             vehicleType: vehicle.type.includes("car") ? "car" : "bike",
             withExtraDriver: needsExtraDriver,
             currentRide: null, // Exclude drivers with active rides
-            currentLocation: {
-              $geoWithin: {
-                $centerSphere: [
-                  [
-                    ride.pickupLocation.coordinates[0],
-                    ride.pickupLocation.coordinates[1],
-                  ],
-                  5 / 6378.1, // 5km radius
-                ],
-              },
-            },
+            // currentLocation: {
+            //   $geoWithin: {
+            //     $centerSphere: [
+            //       [
+            //         ride.pickupLocation.coordinates[0],
+            //         ride.pickupLocation.coordinates[1],
+            //       ],
+            //       5 / 6378.1, // 5km radius
+            //     ],
+            //   },
+            // },
           });
 
           if (nearbyDrivers.length === 0) {

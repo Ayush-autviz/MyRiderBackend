@@ -119,6 +119,7 @@ const createRide = async (req, res) => {
           vehicle: vehicle,
           status: ride.status,
           createdAt: ride.createdAt,
+          fare: ride.fare,
         },
       });
 
@@ -152,6 +153,7 @@ const createRide = async (req, res) => {
             pickupLocation: ride.pickupLocation,
             destination: ride.destination,
             vehicle: vehicle,
+            fare: ride.fare,
           });
         });
 
@@ -220,6 +222,8 @@ const getRideById = async (req, res) => {
   try {
     const { rideId } = req.params;
 
+    console.log(rideId, "ride details id");
+
     const ride = await Ride.findById(rideId)
       .populate("driver", "firstName lastName phone vehicleDetails")
       .populate("vehicle");
@@ -232,12 +236,11 @@ const getRideById = async (req, res) => {
     }
 
     // Check if the ride belongs to the authenticated user
-    if (ride.customer.toString() !== req.user.id) {
-      return res.status(StatusCodes.FORBIDDEN).json({
-        success: false,
-        message: "Unauthorized: Ride does not belong to this user",
-      });
-    }
+    // if (ride.customer.toString() !== req.user.id || ) {
+    // return res.status(StatusCodes.FORBIDDEN).json({
+    //   success: false,
+    //   message: "Unauthorized: Ride does not belong to this user",
+    // });
 
     // Create a response object with the vehicle details
     const rideResponse = {
