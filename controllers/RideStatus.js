@@ -1,5 +1,6 @@
 const Ride = require("../models/Ride");
 const Driver = require("../models/Driver");
+const User = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
 
 // Generate 4-digit OTP for ride verification
@@ -314,7 +315,7 @@ const completeRide = async (req, res) => {
     }
 
     // Check if ride is in the correct state
-    if (ride.status !== "otp_verified") {
+    if (!["otp_verified", "in_progress"].includes(ride.status)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: `Cannot complete ride. Current status is: ${ride.status}`,
@@ -328,6 +329,11 @@ const completeRide = async (req, res) => {
     // Update driver status
     await Driver.findByIdAndUpdate(driverId, {
       isAvailable: true,
+      currentRide: null,
+    });
+
+    // Clear user's currentRide field
+    await User.findByIdAndUpdate(ride.customer, {
       currentRide: null,
     });
 
@@ -403,6 +409,11 @@ const cancelRide = async (req, res) => {
       ride.cancellationReason = reason;
     }
     await ride.save();
+
+    // Clear user's currentRide field
+    await User.findByIdAndUpdate(ride.customer, {
+      currentRide: null,
+    });
 
     // If driver exists, update driver status
     if (ride.driver) {

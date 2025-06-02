@@ -284,6 +284,12 @@ const handleSocketConnection = (io) => {
           if (nearbyDrivers.length === 0) {
             ride.status = "noDriversFound";
             await ride.save();
+
+            // Clear user's currentRide field since no drivers were found
+            await User.findByIdAndUpdate(user.id, {
+              currentRide: null,
+            });
+
             socket.emit("noDriversAvailable", {
               message: "No drivers available nearby",
             });
@@ -325,6 +331,12 @@ const handleSocketConnection = (io) => {
               if (stillPending && stillPending.status === "searchingDriver") {
                 stillPending.status = "noDriversFound";
                 await stillPending.save();
+
+                // Clear user's currentRide field since no drivers accepted
+                await User.findByIdAndUpdate(user.id, {
+                  currentRide: null,
+                });
+
                 socket.to(`customer_${user.id}`).emit("noDriversFound", {
                   rideId: ride._id,
                   message: "No drivers accepted the ride within 5 minutes",

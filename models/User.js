@@ -52,6 +52,11 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    currentRide: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Ride',
+      default: null,
+    },
   },
   {
     timestamps: true,

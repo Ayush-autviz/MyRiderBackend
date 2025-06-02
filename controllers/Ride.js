@@ -62,6 +62,11 @@ const createRide = async (req, res) => {
 
     await ride.save();
 
+    // Update user's currentRide field
+    await User.findByIdAndUpdate(req.user.id, {
+      currentRide: ride._id,
+    });
+
     // Create a response object with the vehicle details
     const rideResponse = {
       id: ride._id,
@@ -126,6 +131,12 @@ const createRide = async (req, res) => {
       if (nearbyDrivers.length === 0) {
         ride.status = "noDriversFound";
         await ride.save();
+
+        // Clear user's currentRide field since no drivers were found
+        await User.findByIdAndUpdate(user.id, {
+          currentRide: null,
+        });
+
         socket.to(`customer_${user.id}`).emit("noDriversAvailable", {
           message: "No drivers available nearby",
         });
@@ -166,6 +177,12 @@ const createRide = async (req, res) => {
             if (stillPending && stillPending.status === "searchingDriver") {
               stillPending.status = "noDriversFound";
               await stillPending.save();
+
+              // Clear user's currentRide field since no drivers accepted
+              await User.findByIdAndUpdate(user.id, {
+                currentRide: null,
+              });
+
               socket.to(`customer_${user.id}`).emit("noDriversFound", {
                 rideId: ride._id,
                 message: "No drivers accepted the ride within 5 minutes",
