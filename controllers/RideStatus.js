@@ -314,7 +314,7 @@ const completeRide = async (req, res) => {
     }
 
     // Check if ride is in the correct state
-    if (ride.status !== "in_progress") {
+    if (ride.status !== "otp_verified") {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: `Cannot complete ride. Current status is: ${ride.status}`,

@@ -370,9 +370,9 @@ const uploadDocuments = async (req, res) => {
 
 const getDriverDetails = async (req, res) => {
   try {
-    console.log(req.driver, "driver");
+    console.log(req.user, "driver profile");
 
-    const driver = await Driver.findById(req.driver.id)
+    const driver = await Driver.findById(req.user.id)
       .select("-otp -otpExpires -__v")
       .lean();
 
@@ -413,7 +413,7 @@ const editDriverDetails = async (req, res) => {
   const email = req.body.email || null;
 
   try {
-    const driver = await Driver.findById(req.driver.id);
+    const driver = await Driver.findById(req.user.id);
     console.log(driver, "driver");
     if (!driver) {
       return res.status(StatusCodes.NOT_FOUND).json({

@@ -10,7 +10,7 @@ const handleSocketConnection = (io) => {
   // Authentication middleware
   io.use(async (socket, next) => {
     console.log("entered in middleware");
-    console.log("socket ", socket.handshake);
+    // console.log("socket ", socket.handshake);
     const token = socket.handshake.auth.access_token;
     if (!token) {
       console.log("No token provided");
@@ -59,16 +59,17 @@ const handleSocketConnection = (io) => {
 
       // Driver goes online
       socket.on("goOnDuty", async (coords) => {
+        console.log(coords, "coords");
         try {
-          await Driver.findByIdAndUpdate(user.id, {
-            isAvailable: true,
-            currentLocation: {
-              type: "Point",
-              coordinates: [coords.longitude, coords.latitude],
-              lastUpdated: new Date(),
-            },
-            lastHeartbeat: new Date(),
-          });
+          // await Driver.findByIdAndUpdate(user.id, {
+          //   isAvailable: true,
+          //   currentLocation: {
+          //     type: "Point",
+          //     coordinates: [coords.longitude, coords.latitude],
+          //     lastUpdated: new Date(),
+          //   },
+          //   lastHeartbeat: new Date(),
+          // });
           socket.join("availableDrivers");
           console.log(`Driver ${user.id} is now available.`);
         } catch (error) {

@@ -42,7 +42,7 @@ const userSchema = new Schema(
     profileStatus: {
       type: Number,
       default: 1,
-      enum: [1, 2], // 0: inactive, 1: active, 2: suspended
+      enum: [0, 1, 2], // 0: inactive, 1: active, 2: suspended
     },
     registrationComplete: {
       type: Boolean,
@@ -68,7 +68,7 @@ userSchema.methods.createAccessToken = function () {
     {
       id: this._id,
       phone: this.phone,
-      role:'customer'
+      role: "customer",
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "15m" }
@@ -77,7 +77,7 @@ userSchema.methods.createAccessToken = function () {
 
 userSchema.methods.createRefreshToken = function () {
   return jwt.sign(
-    { id: this._id, phone: this.phone,role:'customer' },
+    { id: this._id, phone: this.phone, role: "customer" },
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
