@@ -347,8 +347,58 @@ const getUserRides = async (req, res) => {
   }
 };
 
+// Get driver's ride history
+const getDriverRides = async (req, res) => {
+  try {
+    const rides = await Ride.find({ driver: req.user.id })
+      .populate("customer", "firstName lastName phone")
+      .populate("vehicle")
+      .sort({ createdAt: -1 });
+
+    // Map rides to include vehicle details
+    const ridesWithDetails = rides.map((ride) => {
+      return {
+        id: ride._id,
+        pickupLocation: ride.pickupLocation,
+        destination: ride.destination,
+        vehicle: ride.vehicle
+          ? {
+              id: ride.vehicle._id,
+              type: ride.vehicle.type,
+              description: ride.vehicle.description,
+              pricePerKm: ride.vehicle.pricePerKm,
+            }
+          : null,
+        distance: ride.distance,
+        fare: ride.fare,
+        status: ride.status,
+        customer: ride.customer,
+        createdAt: ride.createdAt,
+        updatedAt: ride.updatedAt,
+        rating: ride.rating,
+      };
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        rides: ridesWithDetails,
+        count: ridesWithDetails.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching driver rides:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Server error while fetching rides",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createRide,
   getRideById,
   getUserRides,
+  getDriverRides,
 };
