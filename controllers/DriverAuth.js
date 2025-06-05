@@ -489,7 +489,7 @@ const goOnline = async (req, res) => {
     }
 
     driver.isAvailable = true;
-    driver.withExtraDriver = false; // Normal online
+    driver.withExtraDriver = true; // Normal online
 
     await driver.save();
     res.status(200).json({ message: "Driver is now online", driver });

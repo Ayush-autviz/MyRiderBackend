@@ -272,12 +272,14 @@ const getRideById = async (req, res) => {
             pricePerKm: ride.vehicle.pricePerKm,
           }
         : null,
+      rideOtp: ride.rideOtp,
       distance: ride.distance,
       fare: ride.fare,
       status: ride.status,
       driver: ride.driver,
       createdAt: ride.createdAt,
       updatedAt: ride.updatedAt,
+      rating: ride.rating,
     };
 
     res.status(StatusCodes.OK).json({
@@ -324,6 +326,7 @@ const getUserRides = async (req, res) => {
         driver: ride.driver,
         createdAt: ride.createdAt,
         updatedAt: ride.updatedAt,
+        rating: ride.rating,
       };
     });
 

@@ -362,6 +362,7 @@ const completeRide = async (req, res) => {
 
 // Cancel ride
 const cancelRide = async (req, res) => {
+  console.log("canacelling ride");
   try {
     const { rideId } = req.params;
     const { reason } = req.body;

@@ -377,6 +377,8 @@ const handleSocketConnection = (io) => {
 
       // Customer searches for nearby drivers
       socket.on("searchNearbyDrivers", async (pickupCoords) => {
+        console.log("search nearby drivers", pickupCoords);
+
         try {
           const nearbyDrivers = await Driver.find({
             isAvailable: true,
