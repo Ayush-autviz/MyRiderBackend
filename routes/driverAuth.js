@@ -21,6 +21,7 @@ const {
 } = require("../controllers/DriverAuth");
 
 const upload = require("../middlewares/Upload");
+const { getDriverRides } = require("../controllers/Ride");
 
 router.post("/login", auth);
 router.post("/register", registerDriver);
@@ -83,5 +84,7 @@ router.put(
   ]),
   editDriverDocuments
 );
+
+router.get("/driverHistory", authdriver, getDriverRides);
 
 module.exports = router;

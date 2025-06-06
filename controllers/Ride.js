@@ -349,6 +349,8 @@ const getUserRides = async (req, res) => {
 
 // Get driver's ride history
 const getDriverRides = async (req, res) => {
+  console.log("driver ride history");
+
   try {
     const rides = await Ride.find({ driver: req.user.id })
       .populate("customer", "firstName lastName phone")

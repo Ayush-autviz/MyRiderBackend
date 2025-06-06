@@ -22,6 +22,5 @@ router.get("/driver/:rideId", authDriver, getRideById);
 router.get("/", authUser, getUserRides);
 
 // Get driver's ride history
-router.get("/driver", authDriver, getDriverRides);
 
 module.exports = router;
