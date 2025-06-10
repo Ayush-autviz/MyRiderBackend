@@ -21,6 +21,7 @@ const { swaggerSpec, swaggerUi } = require("./config/swagger");
 const seedVehicles = require("./utils/seedVehicles");
 
 const handleSocketConnection = require("./controllers/Socket");
+const { startHeartbeatChecker } = require("./jobs/heartbeatChecker");
 
 const app = express();
 app.use(express.json());
@@ -75,6 +76,9 @@ app.get("/", (req, res) => {
 });
 
 handleSocketConnection(io);
+
+// Start heartbeat checker cron job
+startHeartbeatChecker(io);
 
 // Routes
 app.use("/auth", authRouter);

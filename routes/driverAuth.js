@@ -50,8 +50,8 @@ router.put(
 router.get("/driver/details", authdriver, getDriverDetails);
 router.put(
   "/driver/edit-profile",
-  authdriver,
   upload.single("profilePhoto"),
+  authdriver,
   editDriverDetails
 );
 
@@ -65,23 +65,25 @@ router.put("/drivers/:driverId/update-status", updateDriverStatus);
 // Edit vehicle details
 router.put(
   "/driver/edit-vehicle",
-  authdriver,
+
   upload.fields([
     { name: "vehicleImage", maxCount: 1 },
     { name: "numberPlateImage", maxCount: 1 },
   ]),
+  authdriver,
   editVehicleDetails
 );
 
 // Edit driver documents
 router.put(
   "/driver/edit-documents",
-  authdriver,
+
   upload.fields([
     { name: "drivingLicenseFront", maxCount: 1 },
     { name: "drivingLicenseBack", maxCount: 1 },
     { name: "vehicleRegistration", maxCount: 1 },
   ]),
+  authdriver,
   editDriverDocuments
 );
 

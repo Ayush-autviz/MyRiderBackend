@@ -145,35 +145,11 @@ const handleSocketConnection = (io) => {
         }
       });
 
-      // Heartbeat check
-      const checkHeartbeat = setInterval(async () => {
-        try {
-          const driver = await Driver.findById(user.id);
-          if (driver && driver.isAvailable && driver.lastHeartbeat) {
-            const timeDiff =
-              (new Date() - new Date(driver.lastHeartbeat)) / 1000 / 60; // minutes
-            if (timeDiff > 10) {
-              await Driver.findByIdAndUpdate(user.id, {
-                isAvailable: false,
-                lastHeartbeat: null,
-                liveRequests: [],
-              });
-              socket.leave("availableDrivers");
-              socket.emit("forceOffline", { message: "Inactivity timeout" });
-              console.log(`Driver ${user.id} forced offline due to inactivity`);
-            }
-          }
-        } catch (error) {
-          console.error("Error checking heartbeat:", error);
-        }
-      }, 60000); // Check every minute
-
       socket.on("disconnect", async () => {
         try {
           await Driver.findByIdAndUpdate(user.id, {
             liveRequests: [],
           });
-          clearInterval(checkHeartbeat);
         } catch (error) {
           console.error("Error on driver disconnect:", error);
         }
