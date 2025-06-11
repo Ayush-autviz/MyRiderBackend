@@ -29,7 +29,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true })); // For parsing multipart/form-data
 
 // Serve uploaded files statically
-app.use("/uploads", express.static(path.join(__dirname, "Uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Swagger setup
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
