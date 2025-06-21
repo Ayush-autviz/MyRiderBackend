@@ -4,6 +4,7 @@ const Vehicle = require("../models/Vehicle");
 const Driver = require("../models/Driver");
 const geolib = require("geolib");
 const { StatusCodes } = require("http-status-codes");
+const { WalletService } = require("./Wallet");
 
 // Create a new ride
 const createRide = async (req, res) => {
@@ -46,6 +47,20 @@ const createRide = async (req, res) => {
 
     // Calculate fare based on distance and vehicle price per km
     const fare = parseFloat((vehicle.pricePerKm * distanceKm).toFixed(2));
+
+    // Check if user has sufficient wallet balance
+    const user = await User.findById(req.user.id);
+    if (user.walletAmount < fare) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `Insufficient wallet balance. Required: $${fare}, Available: $${user.walletAmount}`,
+        data: {
+          requiredAmount: fare,
+          availableBalance: user.walletAmount,
+          shortfall: fare - user.walletAmount,
+        },
+      });
+    }
 
     // Create ride
     const ride = new Ride({

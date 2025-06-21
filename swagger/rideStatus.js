@@ -68,8 +68,16 @@
  *                   properties:
  *                     ride:
  *                       $ref: '#/components/schemas/Ride'
+ *                     paymentDeducted:
+ *                       type: number
+ *                       description: Amount deducted from customer wallet
+ *                       example: 25.50
+ *                     customerNewBalance:
+ *                       type: number
+ *                       description: Customer's new wallet balance
+ *                       example: 74.50
  *       400:
- *         description: Bad request - ride is no longer available or invalid status
+ *         description: Bad request - ride is no longer available, invalid status, or insufficient wallet balance
  *         content:
  *           application/json:
  *             schema:
@@ -80,7 +88,19 @@
  *                   example: false
  *                 message:
  *                   type: string
- *                   example: "Ride is no longer available"
+ *                   example: "Insufficient wallet balance. Required: $25.50, Available: $15.00"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     requiredAmount:
+ *                       type: number
+ *                       example: 25.50
+ *                     availableBalance:
+ *                       type: number
+ *                       example: 15.00
+ *                     shortfall:
+ *                       type: number
+ *                       example: 10.50
  *       401:
  *         description: Unauthorized - invalid or missing authentication token
  *       403:
@@ -279,7 +299,7 @@
  * @swagger
  * /ride-status/driver/complete/{rideId}:
  *   put:
- *     summary: Complete the ride
+ *     summary: Complete the ride (transfers payment to driver wallet with commission deduction)
  *     tags: [RideStatus]
  *     security:
  *       - bearerAuth: []
@@ -296,7 +316,37 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/RideStatusUpdate'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Ride completed successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     ride:
+ *                       $ref: '#/components/schemas/Ride'
+ *                     payment:
+ *                       type: object
+ *                       properties:
+ *                         totalFare:
+ *                           type: number
+ *                           example: 25.50
+ *                         driverEarning:
+ *                           type: number
+ *                           example: 22.95
+ *                         commissionAmount:
+ *                           type: number
+ *                           example: 2.55
+ *                         commissionPercentage:
+ *                           type: number
+ *                           example: 10
+ *                     driverNewBalance:
+ *                       type: number
+ *                       example: 122.95
  *       400:
  *         description: Invalid status transition
  *       401:
@@ -313,7 +363,7 @@
  * @swagger
  * /ride-status/driver/cancel/{rideId}:
  *   put:
- *     summary: Driver cancels the ride
+ *     summary: Driver cancels the ride (refunds customer if payment was deducted)
  *     tags: [RideStatus]
  *     security:
  *       - bearerAuth: []
@@ -356,7 +406,7 @@
  * @swagger
  * /ride-status/customer/cancel/{rideId}:
  *   put:
- *     summary: Customer cancels the ride
+ *     summary: Customer cancels the ride (refunds customer if payment was deducted)
  *     tags: [RideStatus]
  *     security:
  *       - bearerAuth: []

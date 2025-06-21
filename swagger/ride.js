@@ -193,7 +193,30 @@
  *             schema:
  *               $ref: '#/components/schemas/RideResponse'
  *       400:
- *         description: Invalid input
+ *         description: Invalid input or insufficient wallet balance
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Insufficient wallet balance. Required: $25.50, Available: $15.00"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     requiredAmount:
+ *                       type: number
+ *                       example: 25.50
+ *                     availableBalance:
+ *                       type: number
+ *                       example: 15.00
+ *                     shortfall:
+ *                       type: number
+ *                       example: 10.50
  *       401:
  *         description: Unauthorized
  *       500:

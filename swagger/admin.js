@@ -180,6 +180,103 @@
  *               type: array
  *             topDrivers:
  *               type: array
+ *     CommissionSetting:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         commissionPercentage:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 100
+ *           description: Global commission percentage for all rides
+ *         description:
+ *           type: string
+ *           description: Description of the commission setting
+ *         isActive:
+ *           type: boolean
+ *           description: Whether the commission setting is active
+ *         lastUpdatedBy:
+ *           type: object
+ *           properties:
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             username:
+ *               type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *     AdminWithdrawalRequest:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         driver:
+ *           type: object
+ *           properties:
+ *             _id:
+ *               type: string
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             phone:
+ *               type: string
+ *             email:
+ *               type: string
+ *             walletAmount:
+ *               type: number
+ *         amount:
+ *           type: number
+ *         requestedAmount:
+ *           type: number
+ *         bankDetails:
+ *           type: object
+ *           properties:
+ *             accountHolderName:
+ *               type: string
+ *             accountNumber:
+ *               type: string
+ *             bankName:
+ *               type: string
+ *             routingNumber:
+ *               type: string
+ *             swiftCode:
+ *               type: string
+ *         status:
+ *           type: string
+ *           enum: [pending, approved, rejected, processed, failed]
+ *         adminNotes:
+ *           type: string
+ *         rejectionReason:
+ *           type: string
+ *         processedBy:
+ *           type: object
+ *           properties:
+ *             firstName:
+ *               type: string
+ *             lastName:
+ *               type: string
+ *             username:
+ *               type: string
+ *         processedAt:
+ *           type: string
+ *           format: date-time
+ *         transactionId:
+ *           type: string
+ *         paymentMethod:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  */
 
 /**
@@ -479,6 +576,288 @@
  *         description: Cannot cancel completed or already cancelled ride
  *       404:
  *         description: Ride not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+ * /admin/commission:
+ *   get:
+ *     summary: Get current commission setting
+ *     tags: [Admin Commission Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Commission setting retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CommissionSetting'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+   put:
+ *     summary: Update global commission setting
+ *     tags: [Admin Commission Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - commissionPercentage
+ *             properties:
+ *               commissionPercentage:
+ *                 type: number
+ *                 minimum: 0
+ *                 maximum: 100
+ *                 description: Global commission percentage (0-100)
+ *               description:
+ *                 type: string
+ *                 description: Commission description
+ *     responses:
+ *       200:
+ *         description: Commission setting updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CommissionSetting'
+ *       400:
+ *         description: Invalid commission percentage
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+ * /admin/commission/initialize:
+ *   post:
+ *     summary: Initialize default commission setting (20%)
+ *     tags: [Admin Commission Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Default commission setting initialized successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/CommissionSetting'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+ * /admin/withdrawals:
+ *   get:
+ *     summary: Get all withdrawal requests
+ *     tags: [Admin Withdrawal Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected, processed, failed]
+ *         description: Filter by status
+ *       - in: query
+ *         name: driverId
+ *         schema:
+ *           type: string
+ *         description: Filter by driver ID
+ *     responses:
+ *       200:
+ *         description: Withdrawal requests retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     requests:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/AdminWithdrawalRequest'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                         totalRequests:
+ *                           type: integer
+ *                         hasNext:
+ *                           type: boolean
+ *                         hasPrev:
+ *                           type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+ * /admin/withdrawals/{requestId}/approve:
+ *   put:
+ *     summary: Approve withdrawal request
+ *     tags: [Admin Withdrawal Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Withdrawal request ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               adminNotes:
+ *                 type: string
+ *                 description: Admin notes (optional)
+ *               transactionId:
+ *                 type: string
+ *                 description: Bank transaction ID (optional)
+ *     responses:
+ *       200:
+ *         description: Withdrawal request approved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     request:
+ *                       $ref: '#/components/schemas/AdminWithdrawalRequest'
+ *                     driverNewBalance:
+ *                       type: number
+ *       400:
+ *         description: Driver has insufficient wallet balance
+ *       404:
+ *         description: Pending withdrawal request not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ */
+
+/**
+ * @swagger
+ * /admin/withdrawals/{requestId}/reject:
+ *   put:
+ *     summary: Reject withdrawal request
+ *     tags: [Admin Withdrawal Management]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Withdrawal request ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - rejectionReason
+ *             properties:
+ *               rejectionReason:
+ *                 type: string
+ *                 description: Reason for rejection
+ *               adminNotes:
+ *                 type: string
+ *                 description: Additional admin notes (optional)
+ *     responses:
+ *       200:
+ *         description: Withdrawal request rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/AdminWithdrawalRequest'
+ *       400:
+ *         description: Rejection reason is required
+ *       404:
+ *         description: Pending withdrawal request not found
  *       401:
  *         description: Unauthorized
  *       403:

@@ -1,7 +1,9 @@
 const Ride = require("../models/Ride");
 const Driver = require("../models/Driver");
 const User = require("../models/User");
+const CommissionSettings = require("../models/CommissionSettings");
 const { StatusCodes } = require("http-status-codes");
+const { WalletService } = require("./Wallet");
 
 // Generate 4-digit OTP for ride verification
 function generateRideOTP() {
@@ -41,6 +43,33 @@ const acceptRide = async (req, res) => {
     if (ride.distance && ride.vehicle.pricePerKm) {
       ride.fare = ride.distance * ride.vehicle.pricePerKm;
     }
+
+    // Check user wallet balance and deduct payment
+    const user = await User.findById(ride.customer);
+    if (user.walletAmount < ride.fare) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `Insufficient wallet balance. Required: $${ride.fare}, Available: $${user.walletAmount}`,
+        data: {
+          requiredAmount: ride.fare,
+          availableBalance: user.walletAmount,
+          shortfall: ride.fare - user.walletAmount,
+        },
+      });
+    }
+
+    // Deduct amount from user wallet
+    const walletResult = await WalletService.debitUserWallet(
+      user._id,
+      ride.fare,
+      `Payment for ride from ${ride.pickupLocation.address} to ${ride.destination.address}`,
+      "ride_payment",
+      {
+        rideId: ride._id,
+        driverId: driverId,
+        vehicleType: ride.vehicle.type,
+      }
+    );
 
     // Update ride and driver
     ride.driver = driverId;
@@ -322,15 +351,44 @@ const completeRide = async (req, res) => {
       });
     }
 
+    // Get current commission setting
+    const commissionSetting = await CommissionSettings.getCurrentRate();
+
+    // Calculate commission and driver earning
+    const commissionAmount = commissionSetting.calculateCommission(ride.fare);
+    const driverEarning = ride.fare - commissionAmount;
+
+    // Transfer payment to driver wallet
+    const driverWalletResult = await WalletService.creditDriverWallet(
+      driverId,
+      driverEarning,
+      `Ride earning from ${ride.pickupLocation.address} to ${ride.destination.address}`,
+      "ride_earning",
+      {
+        rideId: ride._id,
+        customerId: ride.customer,
+        totalFare: ride.fare,
+        commissionAmount: commissionAmount,
+        commissionPercentage: commissionSetting.commissionPercentage,
+        vehicleType: ride.vehicle.type,
+      }
+    );
+
     // Update ride status
     ride.status = "completed";
+    ride.completedAt = new Date();
     await ride.save();
 
     // Update driver status
-    await Driver.findByIdAndUpdate(driverId, {
-      isAvailable: true,
-      currentRide: null,
-    });
+    const driver = await Driver.findByIdAndUpdate(
+      driverId,
+      {
+        isAvailable: true,
+        currentRide: null,
+        $inc: { totalRides: 1 },
+      },
+      { new: true }
+    );
 
     // Clear user's currentRide field
     await User.findByIdAndUpdate(ride.customer, {
@@ -344,12 +402,31 @@ const completeRide = async (req, res) => {
         message: "Your ride has been completed",
         fare: ride.fare,
       });
+
+      // Notify driver about earnings
+      req.io.to(`driver_${driverId}`).emit("rideCompleted", {
+        rideId: ride._id,
+        totalFare: ride.fare,
+        earning: driverEarning,
+        commission: commissionAmount,
+        newWalletBalance: driverWalletResult.newBalance,
+        message: "Ride completed successfully",
+      });
     }
 
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Ride completed successfully",
-      data: { ride },
+      data: {
+        ride,
+        payment: {
+          totalFare: ride.fare,
+          driverEarning: driverEarning,
+          commissionAmount: commissionAmount,
+          commissionPercentage: commissionSetting.commissionPercentage,
+        },
+        driverNewBalance: driverWalletResult.newBalance,
+      },
     });
   } catch (error) {
     console.error("Error completing ride:", error);
@@ -404,8 +481,32 @@ const cancelRide = async (req, res) => {
       });
     }
 
+    // If payment was already deducted (ride was accepted), refund to customer
+    let refundAmount = 0;
+    if (
+      ride.status === "accepted" ||
+      ride.status === "arrived" ||
+      ride.status === "otp_verified" ||
+      ride.status === "in_progress"
+    ) {
+      refundAmount = ride.fare;
+      await WalletService.creditUserWallet(
+        ride.customer,
+        ride.fare,
+        `Refund for cancelled ride from ${ride.pickupLocation.address}`,
+        "refund",
+        {
+          rideId: ride._id,
+          cancelledBy: userRole,
+          reason: reason,
+        }
+      );
+    }
+
     // Update ride status
     ride.status = "cancelled";
+    ride.cancelledAt = new Date();
+    ride.cancelledBy = userRole;
     if (reason) {
       ride.cancellationReason = reason;
     }
@@ -445,7 +546,10 @@ const cancelRide = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Ride cancelled successfully",
-      data: { ride },
+      data: {
+        ride,
+        refundAmount: refundAmount,
+      },
     });
   } catch (error) {
     console.error("Error cancelling ride:", error);

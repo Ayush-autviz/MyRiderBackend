@@ -5,6 +5,7 @@ const http = require("http");
 const path = require("path");
 const socketIo = require("socket.io");
 const cors = require("cors");
+const CommissionSettings = require("./models/CommissionSettings");
 
 // Routers
 const authRouter = require("./routes/auth");
@@ -15,6 +16,8 @@ const rideStatusRouter = require("./routes/rideStatus");
 const userProfileRouter = require("./routes/userProfile");
 const ratingRouter = require("./routes/rating");
 const adminRouter = require("./routes/admin");
+const walletRouter = require("./routes/wallet");
+const driverWalletRouter = require("./routes/driverWallet");
 
 const connectDB = require("./config/connect");
 const { swaggerSpec, swaggerUi } = require("./config/swagger");
@@ -89,6 +92,27 @@ app.use("/ride-status", rideStatusRouter);
 app.use("/user/profile", userProfileRouter);
 app.use("/rating", ratingRouter);
 app.use("/admin", adminRouter);
+app.use("/wallet", walletRouter);
+app.use("/driver/wallet", driverWalletRouter);
+
+// Initialize commission settings
+const initializeCommission = async () => {
+  try {
+    const existingSetting = await CommissionSettings.findOne({
+      isActive: true,
+    });
+    if (!existingSetting) {
+      await CommissionSettings.create({
+        commissionPercentage: 20,
+        description: "Default global commission rate",
+        isActive: true,
+      });
+      console.log("✓ Initialized default commission setting: 20%");
+    }
+  } catch (error) {
+    console.error("Error initializing commission:", error);
+  }
+};
 
 const start = async () => {
   try {
@@ -97,6 +121,9 @@ const start = async () => {
 
     // Seed vehicle data if needed
     await seedVehicles();
+
+    // Initialize commission settings
+    await initializeCommission();
 
     // Start the server
     server.listen(process.env.PORT || 4000, () =>
