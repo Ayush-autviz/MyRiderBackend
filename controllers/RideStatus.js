@@ -2,6 +2,7 @@ const Ride = require("../models/Ride");
 const Driver = require("../models/Driver");
 const User = require("../models/User");
 const CommissionSettings = require("../models/CommissionSettings");
+const AdminEarnings = require("../models/AdminEarnings");
 const { StatusCodes } = require("http-status-codes");
 const { WalletService } = require("./Wallet");
 
@@ -378,6 +379,33 @@ const completeRide = async (req, res) => {
     ride.status = "completed";
     ride.completedAt = new Date();
     await ride.save();
+
+    // Populate ride with vehicle details for admin earnings
+    await ride.populate('vehicle');
+
+    // Record admin earnings
+    const adminEarning = new AdminEarnings({
+      ride: ride._id,
+      customer: ride.customer,
+      driver: driverId,
+      totalFare: ride.fare,
+      commissionAmount: commissionAmount,
+      commissionPercentage: commissionSetting.commissionPercentage,
+      driverEarning: driverEarning,
+      vehicleType: ride.vehicle.type,
+      pickupLocation: {
+        address: ride.pickupLocation.address,
+        coordinates: ride.pickupLocation.coordinates,
+      },
+      destination: {
+        address: ride.destination.address,
+        coordinates: ride.destination.coordinates,
+      },
+      rideDistance: ride.distance,
+      completedAt: ride.completedAt,
+    });
+
+    await adminEarning.save();
 
     // Update driver status
     const driver = await Driver.findByIdAndUpdate(

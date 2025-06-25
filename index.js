@@ -16,6 +16,7 @@ const rideStatusRouter = require("./routes/rideStatus");
 const userProfileRouter = require("./routes/userProfile");
 const ratingRouter = require("./routes/rating");
 const adminRouter = require("./routes/admin");
+const adminEarningsRouter = require("./routes/adminEarnings");
 const walletRouter = require("./routes/wallet");
 const driverWalletRouter = require("./routes/driverWallet");
 
@@ -92,6 +93,7 @@ app.use("/ride-status", rideStatusRouter);
 app.use("/user/profile", userProfileRouter);
 app.use("/rating", ratingRouter);
 app.use("/admin", adminRouter);
+app.use("/admin/earnings", adminEarningsRouter);
 app.use("/wallet", walletRouter);
 app.use("/driver/wallet", driverWalletRouter);
 

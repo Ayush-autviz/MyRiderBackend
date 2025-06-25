@@ -122,6 +122,7 @@ const handleSocketConnection = (io) => {
       // Driver updates location
       socket.on("updateLocation", async (coords) => {
         try {
+          // Update driver location
           await Driver.findByIdAndUpdate(user.id, {
             currentLocation: {
               type: "Point",
@@ -131,7 +132,10 @@ const handleSocketConnection = (io) => {
             lastHeartbeat: new Date(),
           });
 
-          // Notify subscribed customers
+          // Find driver with populated currentRide to get customer info
+          const driverWithRide = await Driver.findById(user.id).populate('currentRide');
+          
+          // Notify subscribed customers (existing functionality)
           socket.to(`driver_${user.id}`).emit("driverLocationUpdate", {
             driverId: user.id,
             coords: {
@@ -139,7 +143,22 @@ const handleSocketConnection = (io) => {
               longitude: coords.longitude,
             },
           });
-          console.log(`Updated location for driver ${user.id}`);
+
+          // If driver has an active ride, also emit to the customer
+          if (driverWithRide && driverWithRide.currentRide && driverWithRide.currentRide.customer) {
+            const customerId = driverWithRide.currentRide.customer.toString();
+            socket.to(`customer_${customerId}`).emit("driverLocationUpdate", {
+              driverId: user.id,
+              coords: {
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+              },
+              rideId: driverWithRide.currentRide._id,
+            });
+            console.log(`Updated location for driver ${user.id} and notified customer ${customerId}`);
+          } else {
+            console.log(`Updated location for driver ${user.id} (no active ride)`);
+          }
         } catch (error) {
           console.error("Error updating location:", error);
         }
