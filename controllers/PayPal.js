@@ -8,7 +8,7 @@ const WalletTransaction = require('../models/WalletTransaction');
 // Create PayPal order for wallet top-up
 const createPayPalOrder = async (req, res) => {
   try {
-    const { amount, currency = 'USD' } = req.body;
+    const { amount, currency = 'ZAR' } = req.body;
     const userId = req.user.id;
 
     // Validate amount
