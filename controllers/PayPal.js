@@ -1,21 +1,21 @@
-const { StatusCodes } = require('http-status-codes');
-const paypal = require('@paypal/checkout-server-sdk');
-const { client } = require('../config/paypalConfig');
-const PayPalTransaction = require('../models/PayPalTransaction');
-const User = require('../models/User');
-const WalletTransaction = require('../models/WalletTransaction');
+const { StatusCodes } = require("http-status-codes");
+const paypal = require("@paypal/checkout-server-sdk");
+const { client } = require("../config/paypalConfig");
+const PayPalTransaction = require("../models/PayPalTransaction");
+const User = require("../models/User");
+const WalletTransaction = require("../models/WalletTransaction");
 
 // Create PayPal order for wallet top-up
 const createPayPalOrder = async (req, res) => {
   try {
-    const { amount, currency = 'ZAR' } = req.body;
+    const { amount, currency = "USD" } = req.body;
     const userId = req.user.id;
 
     // Validate amount
     if (!amount || amount <= 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Invalid amount. Amount must be greater than 0'
+        message: "Invalid amount. Amount must be greater than 0",
       });
     }
 
@@ -23,7 +23,7 @@ const createPayPalOrder = async (req, res) => {
     if (amount < 1) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Minimum top-up amount is $1'
+        message: "Minimum top-up amount is $1",
       });
     }
 
@@ -31,7 +31,7 @@ const createPayPalOrder = async (req, res) => {
     if (amount > 1000) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Maximum top-up amount is $1000'
+        message: "Maximum top-up amount is $1000",
       });
     }
 
@@ -39,20 +39,22 @@ const createPayPalOrder = async (req, res) => {
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
     request.requestBody({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: currency,
-          value: amount.toFixed(2)
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          amount: {
+            currency_code: currency,
+            value: amount.toFixed(2),
+          },
+          description: `Wallet top-up for user ${userId}`,
         },
-        description: `Wallet top-up for user ${userId}`
-      }],
+      ],
       application_context: {
         return_url: `${process.env.FRONTEND_URL}/wallet/success`,
         cancel_url: `${process.env.FRONTEND_URL}/wallet/cancel`,
-        brand_name: 'MyRider',
-        user_action: 'PAY_NOW'
-      }
+        brand_name: "MyRider",
+        user_action: "PAY_NOW",
+      },
     });
 
     // Execute PayPal request
@@ -64,29 +66,29 @@ const createPayPalOrder = async (req, res) => {
       paypalOrderId: order.result.id,
       amount: parseFloat(amount),
       currency,
-      status: 'created',
-      paypalResponse: order.result
+      status: "created",
+      paypalResponse: order.result,
     });
 
     await paypalTransaction.save();
 
     return res.status(StatusCodes.OK).json({
       success: true,
-      message: 'PayPal order created successfully',
+      message: "PayPal order created successfully",
       data: {
         orderId: order.result.id,
-        approvalUrl: order.result.links.find(link => link.rel === 'approve').href,
+        approvalUrl: order.result.links.find((link) => link.rel === "approve")
+          .href,
         amount: amount,
-        currency: currency
-      }
+        currency: currency,
+      },
     });
-
   } catch (error) {
-    console.error('Error creating PayPal order:', error);
+    console.error("Error creating PayPal order:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Failed to create PayPal order',
-      error: error.message
+      message: "Failed to create PayPal order",
+      error: error.message,
     });
   }
 };
@@ -100,20 +102,20 @@ const capturePayPalPayment = async (req, res) => {
     // Find the transaction record
     const paypalTransaction = await PayPalTransaction.findOne({
       paypalOrderId: orderId,
-      user: userId
+      user: userId,
     });
 
     if (!paypalTransaction) {
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
-        message: 'Transaction not found'
+        message: "Transaction not found",
       });
     }
 
-    if (paypalTransaction.status === 'completed') {
+    if (paypalTransaction.status === "completed") {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Transaction already completed'
+        message: "Transaction already completed",
       });
     }
 
@@ -123,10 +125,11 @@ const capturePayPalPayment = async (req, res) => {
 
     const capture = await client().execute(request);
 
-    if (capture.result.status === 'COMPLETED') {
+    if (capture.result.status === "COMPLETED") {
       // Update PayPal transaction
-      paypalTransaction.status = 'completed';
-      paypalTransaction.paypalPaymentId = capture.result.purchase_units[0].payments.captures[0].id;
+      paypalTransaction.status = "completed";
+      paypalTransaction.paypalPaymentId =
+        capture.result.purchase_units[0].payments.captures[0].id;
       paypalTransaction.paypalResponse = capture.result;
       paypalTransaction.completedAt = new Date();
       await paypalTransaction.save();
@@ -140,14 +143,14 @@ const capturePayPalPayment = async (req, res) => {
       // Create wallet transaction record
       const walletTransaction = new WalletTransaction({
         user: userId,
-        userType: 'customer',
-        transactionType: 'credit',
+        userType: "customer",
+        transactionType: "credit",
         amount: paypalTransaction.amount,
         balanceAfter: user.walletAmount,
         description: `Wallet top-up via PayPal - Order ${orderId}`,
-        category: 'topup',
+        category: "topup",
         relatedPayment: paypalTransaction._id,
-        status: 'completed'
+        status: "completed",
       });
 
       await walletTransaction.save();
@@ -158,52 +161,50 @@ const capturePayPalPayment = async (req, res) => {
 
       return res.status(StatusCodes.OK).json({
         success: true,
-        message: 'Payment captured successfully',
+        message: "Payment captured successfully",
         data: {
           transactionId: walletTransaction._id,
           amount: paypalTransaction.amount,
           newBalance: user.walletAmount,
-          paypalPaymentId: paypalTransaction.paypalPaymentId
-        }
+          paypalPaymentId: paypalTransaction.paypalPaymentId,
+        },
       });
-
     } else {
       // Payment failed
-      paypalTransaction.status = 'failed';
-      paypalTransaction.failureReason = 'Payment capture failed';
+      paypalTransaction.status = "failed";
+      paypalTransaction.failureReason = "Payment capture failed";
       paypalTransaction.paypalResponse = capture.result;
       await paypalTransaction.save();
 
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Payment capture failed',
+        message: "Payment capture failed",
         data: {
-          status: capture.result.status
-        }
+          status: capture.result.status,
+        },
       });
     }
-
   } catch (error) {
-    console.error('Error capturing PayPal payment:', error);
-    
+    console.error("Error capturing PayPal payment:", error);
+
     // Update transaction status to failed
     try {
       await PayPalTransaction.findOneAndUpdate(
         { paypalOrderId: req.params.orderId, user: req.user.id },
-        { 
-          status: 'failed', 
+        {
+          status: "failed",
           failureReason: error.message,
-          paypalResponse: error.details || {}
+          paypalResponse: error.details || {},
         }
       );
     } catch (updateError) {
-      console.error('Error updating failed transaction:', updateError);
+      console.error("Error updating failed transaction:", updateError);
     }
 
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Failed to capture payment',
-      error: error.message
+      message: "Failed to capture payment",
+      error: error.message,
     });
   }
 };
@@ -216,28 +217,27 @@ const getPayPalTransaction = async (req, res) => {
 
     const transaction = await PayPalTransaction.findOne({
       _id: transactionId,
-      user: userId
-    }).populate('walletTransaction');
+      user: userId,
+    }).populate("walletTransaction");
 
     if (!transaction) {
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
-        message: 'Transaction not found'
+        message: "Transaction not found",
       });
     }
 
     return res.status(StatusCodes.OK).json({
       success: true,
-      message: 'Transaction retrieved successfully',
-      data: transaction
+      message: "Transaction retrieved successfully",
+      data: transaction,
     });
-
   } catch (error) {
-    console.error('Error fetching PayPal transaction:', error);
+    console.error("Error fetching PayPal transaction:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Failed to fetch transaction',
-      error: error.message
+      message: "Failed to fetch transaction",
+      error: error.message,
     });
   }
 };
@@ -254,7 +254,7 @@ const getPayPalTransactionHistory = async (req, res) => {
     }
 
     const transactions = await PayPalTransaction.find(query)
-      .populate('walletTransaction')
+      .populate("walletTransaction")
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -263,7 +263,7 @@ const getPayPalTransactionHistory = async (req, res) => {
 
     return res.status(StatusCodes.OK).json({
       success: true,
-      message: 'Transaction history retrieved successfully',
+      message: "Transaction history retrieved successfully",
       data: {
         transactions,
         pagination: {
@@ -271,17 +271,16 @@ const getPayPalTransactionHistory = async (req, res) => {
           totalPages: Math.ceil(total / limit),
           totalTransactions: total,
           hasNext: page * limit < total,
-          hasPrev: page > 1
-        }
-      }
+          hasPrev: page > 1,
+        },
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching PayPal transaction history:', error);
+    console.error("Error fetching PayPal transaction history:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
-      message: 'Failed to fetch transaction history',
-      error: error.message
+      message: "Failed to fetch transaction history",
+      error: error.message,
     });
   }
 };
@@ -290,5 +289,5 @@ module.exports = {
   createPayPalOrder,
   capturePayPalPayment,
   getPayPalTransaction,
-  getPayPalTransactionHistory
+  getPayPalTransactionHistory,
 };
