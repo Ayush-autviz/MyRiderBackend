@@ -1,6 +1,7 @@
 const geolib = require('geolib');
 const { StatusCodes } = require('http-status-codes');
 const Vehicle = require('../models/Vehicle');
+const { normalizeCoordinates, validateCoordinates } = require('../utils/coordinateHelpers');
 
 // Get all vehicle types
 const getAllVehicles = async (req, res) => {
@@ -88,11 +89,29 @@ const calculateRidePrices = async (req, res) => {
       });
     }
 
+    // Normalize and validate coordinates
+    let normalizedPickup, normalizedDestination;
+    
+    try {
+      normalizedPickup = normalizeCoordinates(pickupCoords);
+      normalizedDestination = normalizeCoordinates(destinationCoords);
+    } catch (error) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: `Invalid coordinate format: ${error.message}`
+      });
+    }
+
+    // Validate coordinate ranges
+    if (!validateCoordinates(normalizedPickup) || !validateCoordinates(normalizedDestination)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: 'Coordinates are out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180'
+      });
+    }
+
     // Calculate distance in kilometers
-    const distanceMeters = geolib.getDistance(
-      { latitude: pickupCoords.latitude, longitude: pickupCoords.longitude },
-      { latitude: destinationCoords.latitude, longitude: destinationCoords.longitude }
-    );
+    const distanceMeters = geolib.getDistance(normalizedPickup, normalizedDestination);
     const distanceKm = distanceMeters / 1000;
 
     // Get all vehicle types and their prices
