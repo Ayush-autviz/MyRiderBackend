@@ -197,7 +197,7 @@ const driverArrived = async (req, res) => {
 const verifyRideOtp = async (req, res) => {
   try {
     const { rideId } = req.params;
-    const { otp } = req.body;
+    const { otp, customerVehiclePlateNumber } = req.body;
     const driverId = req.user.id;
 
     if (!otp) {
@@ -207,12 +207,22 @@ const verifyRideOtp = async (req, res) => {
       });
     }
 
-    const ride = await Ride.findById(rideId);
+    const ride = await Ride.findById(rideId).populate("vehicle");
     if (!ride) {
       return res.status(StatusCodes.NOT_FOUND).json({
         success: false,
         message: "Ride not found",
       });
+    }
+
+    // Check if vehicle type is carWithExtraDriver and require customer vehicle plate number
+    if (ride.vehicle.type === "carWithExtraDriver") {
+      if (!customerVehiclePlateNumber) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          success: false,
+          message: "Customer vehicle plate number is required for carWithExtraDriver rides",
+        });
+      }
     }
 
     // Verify that this driver is assigned to this ride
@@ -242,6 +252,12 @@ const verifyRideOtp = async (req, res) => {
     // Update ride status and clear OTP
     ride.status = "otp_verified";
     ride.rideOtp = null;
+    
+    // Save customer vehicle plate number for carWithExtraDriver rides
+    if (ride.vehicle.type === "carWithExtraDriver" && customerVehiclePlateNumber) {
+      ride.customerVehiclePlateNumber = customerVehiclePlateNumber.toUpperCase();
+    }
+    
     await ride.save();
 
     // Notify customer via socket

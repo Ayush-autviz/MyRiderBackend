@@ -73,6 +73,12 @@ const rideSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  customerVehiclePlateNumber: {
+    type: String,
+    trim: true,
+    uppercase: true,
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

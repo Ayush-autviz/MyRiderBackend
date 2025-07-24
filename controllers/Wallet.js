@@ -201,7 +201,7 @@ const getUserWallet = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10)
       .populate('relatedRide', 'pickupLocation destination fare')
-      .populate('relatedPayment', 'paypalOrderId amount');
+      .populate('relatedPayment', 'paymentId amount');
 
     return res.status(StatusCodes.OK).json({
       success: true,
@@ -236,7 +236,7 @@ const getUserWalletTransactions = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .populate('relatedRide', 'pickupLocation destination fare status')
-      .populate('relatedPayment', 'paypalOrderId amount currency');
+      .populate('relatedPayment', 'paymentId amount currency');
 
     const total = await WalletTransaction.countDocuments(query);
 

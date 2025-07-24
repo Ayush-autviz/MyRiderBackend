@@ -7,11 +7,12 @@ const {
 } = require('../controllers/Wallet');
 
 const {
-  createPayPalOrder,
-  capturePayPalPayment,
-  getPayPalTransaction,
-  getPayPalTransactionHistory
-} = require('../controllers/PayPal');
+  createPayFastPayment,
+  handlePayFastITN,
+  checkPaymentStatus,
+  getPayFastTransaction,
+  getPayFastTransactionHistory
+} = require('../controllers/PayFast');
 
 const authUser = require('../middlewares/UserAuthentication');
 
@@ -19,10 +20,11 @@ const authUser = require('../middlewares/UserAuthentication');
 router.get('/balance', authUser, getUserWallet);
 router.get('/transactions', authUser, getUserWalletTransactions);
 
-// ==================== PAYPAL ROUTES ====================
-router.post('/paypal/create-order', authUser, createPayPalOrder);
-router.post('/paypal/capture/:orderId', authUser, capturePayPalPayment);
-router.get('/paypal/transaction/:transactionId', authUser, getPayPalTransaction);
-router.get('/paypal/history', authUser, getPayPalTransactionHistory);
+// ==================== PAYFAST ROUTES ====================
+router.post('/payfast/create-payment', authUser, createPayFastPayment);
+router.post('/payfast/notify', handlePayFastITN); // ITN webhook - no auth required
+router.get('/payfast/status/:paymentId', authUser, checkPaymentStatus);
+router.get('/payfast/transaction/:transactionId', authUser, getPayFastTransaction);
+router.get('/payfast/history', authUser, getPayFastTransactionHistory);
 
 module.exports = router;

@@ -73,12 +73,12 @@ Authorization: Bearer <user_access_token>
 - `category` (optional): Filter by category (topup, ride_payment, refund)
 - `transactionType` (optional): Filter by type (credit, debit)
 
-## PayPal Integration APIs
+## PayFast Integration APIs
 
-### Create PayPal Order
-**POST** `/wallet/paypal/create-order`
+### Create PayFast Payment
+**POST** `/wallet/payfast/create-payment`
 
-Create a PayPal order for wallet top-up.
+Create a PayFast payment for wallet top-up.
 
 **Headers:**
 ```
@@ -89,7 +89,7 @@ Authorization: Bearer <user_access_token>
 ```json
 {
   "amount": 50.00,
-  "currency": "USD"
+  "currency": "ZAR"
 }
 ```
 
@@ -97,20 +97,20 @@ Authorization: Bearer <user_access_token>
 ```json
 {
   "success": true,
-  "message": "PayPal order created successfully",
+  "message": "PayFast payment created successfully",
   "data": {
-    "orderId": "paypal_order_id",
-    "approvalUrl": "https://www.sandbox.paypal.com/checkoutnow?token=...",
+    "paymentId": "550e8400-e29b-41d4-a716-446655440000",
+    "paymentUrl": "https://sandbox.payfast.co.za/eng/process?merchant_id=...",
     "amount": 50.00,
-    "currency": "USD"
+    "currency": "ZAR"
   }
 }
 ```
 
-### Capture PayPal Payment
-**POST** `/wallet/paypal/capture/:orderId`
+### Check Payment Status
+**GET** `/wallet/payfast/status/:paymentId`
 
-Capture a PayPal payment and credit user wallet.
+Check the status of a PayFast payment.
 
 **Headers:**
 ```
@@ -121,12 +121,18 @@ Authorization: Bearer <user_access_token>
 ```json
 {
   "success": true,
-  "message": "Payment captured successfully",
+  "message": "Transaction status retrieved successfully",
   "data": {
-    "transactionId": "wallet_transaction_id",
+    "paymentId": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "complete",
     "amount": 50.00,
-    "newBalance": 200.50,
-    "paypalPaymentId": "paypal_payment_id"
+    "currency": "ZAR",
+    "completedAt": "2024-01-15T14:30:00Z",
+    "walletTransaction": {
+      "_id": "wallet_transaction_id",
+      "amount": 50.00,
+      "balanceAfter": 200.50
+    }
   }
 }
 ```
