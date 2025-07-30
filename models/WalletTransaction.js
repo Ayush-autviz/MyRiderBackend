@@ -51,7 +51,7 @@ const walletTransactionSchema = new mongoose.Schema({
   },
   relatedPayment: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'PayPalTransaction',
+    ref: 'PayFastTransaction',
     default: null
   },
   relatedWithdrawal: {

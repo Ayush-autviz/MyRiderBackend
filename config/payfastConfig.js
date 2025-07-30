@@ -2,9 +2,9 @@ const crypto = require('crypto');
 
 // PayFast environment setup
 function getPayFastConfig() {
-  const merchantId = process.env.PAYFAST_MERCHANT_ID;
-  const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
-  const passphrase = process.env.PAYFAST_PASSPHRASE;
+  const merchantId = process.env.NODE_ENV === 'production' ? process.env.PAYFAST_MERCHANT_ID : 10000100;
+  const merchantKey = process.env.NODE_ENV === 'production' ? process.env.PAYFAST_MERCHANT_KEY : '46f0cd694581a';
+  const passphrase = process.env.NODE_ENV === 'production' ? process.env.PAYFAST_PASSPHRASE : 'jt7NOE43FZPn';
   
   if (!merchantId || !merchantKey) {
     throw new Error('PayFast credentials not found in environment variables');
@@ -28,26 +28,29 @@ function getPayFastConfig() {
 
 // Generate PayFast signature
 function generateSignature(data, passphrase = '') {
-  // Create parameter string
-  let paramString = '';
-  
-  // Sort keys and create query string
-  const sortedKeys = Object.keys(data).sort();
-  
-  for (const key of sortedKeys) {
-    if (data[key] !== '') {
-      paramString += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
-    }
+  const crypto = require('crypto');
+ 
+  // Clone data so we don't modify the original
+  const dataCopy = { ...data };
+ 
+  // Only include passphrase if it's set
+  if (passphrase) {
+    dataCopy.passphrase = passphrase;
   }
-  
+ 
+  // Sort keys
+  const sortedKeys = Object.keys(dataCopy).sort();
+  let paramString = '';
+ 
+  for (const key of sortedKeys) {
+    // PayFast requires even empty keys to be included as key=
+    const value = dataCopy[key] ?? '';
+    paramString += `${key}=${encodeURIComponent(value).replace(/%20/g, '+')}&`;
+  }
+ 
   // Remove trailing &
   paramString = paramString.slice(0, -1);
-  
-  // Add passphrase if provided
-  if (passphrase) {
-    paramString += `&passphrase=${encodeURIComponent(passphrase)}`;
-  }
-  
+ 
   // Generate MD5 hash
   return crypto.createHash('md5').update(paramString).digest('hex');
 }
