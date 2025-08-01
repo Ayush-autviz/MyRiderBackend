@@ -216,14 +216,14 @@ const verifyRideOtp = async (req, res) => {
     }
 
     // Check if vehicle type is carWithExtraDriver and require customer vehicle plate number
-    // if (ride.vehicle.type === "carWithExtraDriver") {
-    //   if (!customerVehiclePlateNumber) {
-    //     return res.status(StatusCodes.BAD_REQUEST).json({
-    //       success: false,
-    //       message: "Customer vehicle plate number is required for carWithExtraDriver rides",
-    //     });
-    //   }
-    // }
+    if (ride.vehicle.type === "carWithExtraDriver") {
+      if (!customerVehiclePlateNumber) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          success: false,
+          message: "Customer vehicle plate number is required for carWithExtraDriver rides",
+        });
+      }
+    }
 
     // Verify that this driver is assigned to this ride
     if (ride.driver.toString() !== driverId) {
@@ -254,9 +254,9 @@ const verifyRideOtp = async (req, res) => {
     ride.rideOtp = null;
     
     // Save customer vehicle plate number for carWithExtraDriver rides
-    // if (ride.vehicle.type === "carWithExtraDriver" && customerVehiclePlateNumber) {
-    //   ride.customerVehiclePlateNumber = customerVehiclePlateNumber.toUpperCase();
-    // }
+    if (ride.vehicle.type === "carWithExtraDriver" && customerVehiclePlateNumber) {
+      ride.customerVehiclePlateNumber = customerVehiclePlateNumber.toUpperCase();
+    }
     
     await ride.save();
 
