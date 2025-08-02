@@ -59,7 +59,7 @@ const createPayFastPayment = async (req, res) => {
       merchant_key: getPayFastConfig().merchantKey,
       return_url: `${process.env.FRONTEND_URL}/wallet/success`,
       cancel_url: `${process.env.FRONTEND_URL}/wallet/cancel`,
-      notify_url: process.env.NODE_ENV === 'production' ? `${process.env.BACKEND_URL}/wallet/payfast/notify` : `https://2ppcf4sc-3000.inc1.devtunnels.ms/wallet/payfast/notify`,
+      notify_url: process.env.NODE_ENV === 'production' ? `${process.env.BACKEND_URL}/wallet/payfast/notify` : `${process.env.BACKEND_URL}/wallet/payfast/notify`,
       name_first: user.firstName || 'Customer',
       name_last: user.lastName || '',
       email_address: user.email || '',
