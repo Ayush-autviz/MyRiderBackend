@@ -476,23 +476,63 @@ const editDriverDetails = async (req, res) => {
 // POST /api/driver/go-online
 const goOnline = async (req, res) => {
   try {
-    const { driverId } = req.body;
+    const { driverId, fellowDriverId } = req.body;
 
     if (!driverId) {
       return res.status(400).json({ message: "Driver ID is required" });
     }
 
-    const driver = await Driver.findById(driverId);
+    if (!fellowDriverId) {
+      return res.status(400).json({
+        message: "Fellow driver selection is required to go online",
+      });
+    }
+
+    const driver = await Driver.findById(driverId).populate("fellowDrivers");
 
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
+    // Check if driver account is active
+    if (driver.accountStatus !== "active") {
+      return res.status(400).json({
+        message: "Driver account must be active to go online",
+      });
+    }
+
+    // Verify fellow driver exists and is approved
+    const FellowDriver = require("../models/FellowDriver");
+    const fellowDriver = await FellowDriver.findOne({
+      _id: fellowDriverId,
+      driver: driverId,
+      approvalStatus: "approved",
+      isActive: true,
+    });
+
+    if (!fellowDriver) {
+      return res.status(400).json({
+        message: "Selected fellow driver is not approved or not found",
+      });
+    }
+
     driver.isAvailable = true;
-    driver.withExtraDriver = true; // Normal online
+    driver.withExtraDriver = false; // Normal online
+    driver.liveFellowDriver = fellowDriverId;
 
     await driver.save();
-    res.status(200).json({ message: "Driver is now online", driver });
+
+    res.status(200).json({
+      message: "Driver is now online",
+      driver: {
+        id: driver._id,
+        isAvailable: driver.isAvailable,
+        liveFellowDriver: {
+          id: fellowDriver._id,
+          name: fellowDriver.name,
+        },
+      },
+    });
   } catch (error) {
     console.error("Error in go-online:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -502,10 +542,16 @@ const goOnline = async (req, res) => {
 // POST /api/driver/go-online-with-extra
 const goOnlineWithExtra = async (req, res) => {
   try {
-    const { driverId } = req.body;
+    const { driverId, fellowDriverId } = req.body;
 
     if (!driverId) {
       return res.status(400).json({ message: "Driver ID is required" });
+    }
+
+    if (!fellowDriverId) {
+      return res.status(400).json({
+        message: "Fellow driver selection is required to go online",
+      });
     }
 
     const driver = await Driver.findById(driverId);
@@ -514,14 +560,46 @@ const goOnlineWithExtra = async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
+    // Check if driver account is active
+    if (driver.accountStatus !== "active") {
+      return res.status(400).json({
+        message: "Driver account must be active to go online",
+      });
+    }
+
+    // Verify fellow driver exists and is approved
+    const FellowDriver = require("../models/FellowDriver");
+    const fellowDriver = await FellowDriver.findOne({
+      _id: fellowDriverId,
+      driver: driverId,
+      approvalStatus: "approved",
+      isActive: true,
+    });
+
+    if (!fellowDriver) {
+      return res.status(400).json({
+        message: "Selected fellow driver is not approved or not found",
+      });
+    }
+
     driver.isAvailable = true;
     driver.withExtraDriver = true; // Online with extra driver
+    driver.liveFellowDriver = fellowDriverId;
 
     await driver.save();
 
-    res
-      .status(200)
-      .json({ message: "Driver is now online with extra driver", driver });
+    res.status(200).json({
+      message: "Driver is now online with extra driver",
+      driver: {
+        id: driver._id,
+        isAvailable: driver.isAvailable,
+        withExtraDriver: driver.withExtraDriver,
+        liveFellowDriver: {
+          id: fellowDriver._id,
+          name: fellowDriver.name,
+        },
+      },
+    });
   } catch (error) {
     console.error("Error in go-online-with-extra:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -546,6 +624,7 @@ const goOffline = async (req, res) => {
     driver.isAvailable = false;
     driver.withExtraDriver = false;
     driver.lastHeartbeat = null;
+    driver.liveFellowDriver = null; // Clear live fellow driver
 
     // Clear any live requests
     driver.liveRequests = [];
@@ -555,7 +634,12 @@ const goOffline = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Driver is now offline",
-      driver,
+      driver: {
+        id: driver._id,
+        isAvailable: driver.isAvailable,
+        withExtraDriver: driver.withExtraDriver,
+        liveFellowDriver: driver.liveFellowDriver,
+      },
     });
   } catch (error) {
     console.error("Error in go-offline:", error);

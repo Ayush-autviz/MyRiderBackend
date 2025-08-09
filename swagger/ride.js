@@ -19,6 +19,10 @@
  *         driver:
  *           type: string
  *           description: Reference to the driver assigned to the ride
+         fellowDriver:
+           type: string
+           description: Reference to the fellow driver selected for the ride
+           nullable: true
  *         pickupLocation:
  *           type: object
  *           properties:
@@ -69,6 +73,7 @@
  *         _id: "60d0fe4f5311236168a109cd"
  *         customer: "60d0fe4f5311236168a109ca"
  *         driver: "60d0fe4f5311236168a109cb"
+         fellowDriver: "60d0fe4f5311236168a109ce"
  *         pickupLocation:
  *           address: "123 Main St, City"
  *           coordinates: [77.5946, 12.9716]

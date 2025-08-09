@@ -5,7 +5,10 @@ const Driver = require("../models/Driver");
 const geolib = require("geolib");
 const { StatusCodes } = require("http-status-codes");
 const { WalletService } = require("./Wallet");
-const { normalizeCoordinates, validateCoordinates } = require("../utils/coordinateHelpers");
+const {
+  normalizeCoordinates,
+  validateCoordinates,
+} = require("../utils/coordinateHelpers");
 
 // Create a new ride
 const createRide = async (req, res) => {
@@ -35,27 +38,34 @@ const createRide = async (req, res) => {
 
     // Normalize and validate coordinates
     let normalizedPickup, normalizedDestination;
-    
+
     try {
       normalizedPickup = normalizeCoordinates(pickupLocation);
       normalizedDestination = normalizeCoordinates(destination);
     } catch (error) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: `Invalid coordinate format: ${error.message}`
+        message: `Invalid coordinate format: ${error.message}`,
       });
     }
 
     // Validate coordinate ranges
-    if (!validateCoordinates(normalizedPickup) || !validateCoordinates(normalizedDestination)) {
+    if (
+      !validateCoordinates(normalizedPickup) ||
+      !validateCoordinates(normalizedDestination)
+    ) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Coordinates are out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180'
+        message:
+          "Coordinates are out of valid range. Latitude must be between -90 and 90, longitude between -180 and 180",
       });
     }
 
     // Calculate distance in kilometers
-    const distanceMeters = geolib.getDistance(normalizedPickup, normalizedDestination);
+    const distanceMeters = geolib.getDistance(
+      normalizedPickup,
+      normalizedDestination
+    );
     const distanceKm = distanceMeters / 1000;
 
     // Calculate fare based on distance and vehicle price per km
@@ -271,6 +281,7 @@ const getRideById = async (req, res) => {
 
     const ride = await Ride.findById(rideId)
       .populate("driver", "firstName lastName phone vehicleDetails")
+      .populate("fellowDriver", "name gender mobileNumber profilePhoto")
       .populate("vehicle");
 
     if (!ride) {

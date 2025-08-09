@@ -75,6 +75,12 @@ const acceptRide = async (req, res) => {
     // Update ride and driver
     ride.driver = driverId;
     ride.status = "accepted";
+
+    // Add fellow driver information to the ride
+    if (driver.liveFellowDriver) {
+      ride.fellowDriver = driver.liveFellowDriver;
+    }
+
     await ride.save();
 
     await Driver.findByIdAndUpdate(driverId, {
@@ -220,7 +226,8 @@ const verifyRideOtp = async (req, res) => {
       if (!customerVehiclePlateNumber) {
         return res.status(StatusCodes.BAD_REQUEST).json({
           success: false,
-          message: "Customer vehicle plate number is required for carWithExtraDriver rides",
+          message:
+            "Customer vehicle plate number is required for carWithExtraDriver rides",
         });
       }
     }
@@ -252,12 +259,16 @@ const verifyRideOtp = async (req, res) => {
     // Update ride status and clear OTP
     ride.status = "otp_verified";
     ride.rideOtp = null;
-    
+
     // Save customer vehicle plate number for carWithExtraDriver rides
-    if (ride.vehicle.type === "carWithExtraDriver" && customerVehiclePlateNumber) {
-      ride.customerVehiclePlateNumber = customerVehiclePlateNumber.toUpperCase();
+    if (
+      ride.vehicle.type === "carWithExtraDriver" &&
+      customerVehiclePlateNumber
+    ) {
+      ride.customerVehiclePlateNumber =
+        customerVehiclePlateNumber.toUpperCase();
     }
-    
+
     await ride.save();
 
     // Notify customer via socket
@@ -397,7 +408,7 @@ const completeRide = async (req, res) => {
     await ride.save();
 
     // Populate ride with vehicle details for admin earnings
-    await ride.populate('vehicle');
+    await ride.populate("vehicle");
 
     // Record admin earnings
     const adminEarning = new AdminEarnings({

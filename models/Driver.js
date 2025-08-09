@@ -213,6 +213,17 @@ const driverSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    fellowDrivers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "FellowDriver",
+      },
+    ],
+    liveFellowDriver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FellowDriver",
+      default: null,
+    },
   },
   { timestamps: true }
 );

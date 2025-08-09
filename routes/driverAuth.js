@@ -23,6 +23,9 @@ const {
 const upload = require("../middlewares/Upload");
 const { getDriverRides } = require("../controllers/Ride");
 
+// Fellow driver routes
+const fellowDriverRoutes = require("./fellowDriver");
+
 router.post("/login", auth);
 router.post("/register", registerDriver);
 router.post("/verifyOTP", verifyOtp);
@@ -88,5 +91,8 @@ router.put(
 );
 
 router.get("/driverHistory", authdriver, getDriverRides);
+
+// Fellow driver management routes
+router.use("/fellow-drivers", fellowDriverRoutes);
 
 module.exports = router;

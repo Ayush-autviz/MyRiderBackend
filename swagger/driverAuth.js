@@ -532,7 +532,8 @@
  * @swagger
  * /driverAuth/go-online:
  *   post:
- *     summary: Set driver status to online
+ *     summary: Set driver status to online (requires approved fellow driver)
+ *     description: Driver must select an approved fellow driver to go online. The selected fellow driver will be tracked for the duration of the online session.
  *     tags: [DriverAuth]
  *     security:
  *       - bearerAuth: []
@@ -544,23 +545,19 @@
  *             type: object
  *             required:
  *               - driverId
- *               - location
+ *               - fellowDriverId
  *             properties:
  *               driverId:
  *                 type: string
  *                 description: Driver ID
- *               location:
- *                 type: object
- *                 properties:
- *                   latitude:
- *                     type: number
- *                     description: Latitude coordinate
- *                   longitude:
- *                     type: number
- *                     description: Longitude coordinate
+ *                 example: "60f7b3b3b3b3b3b3b3b3b3b3"
+ *               fellowDriverId:
+ *                 type: string
+ *                 description: ID of approved fellow driver to select
+ *                 example: "60f7b3b3b3b3b3b3b3b3b3b4"
  *     responses:
  *       200:
- *         description: Driver is now online
+ *         description: Driver is now online with selected fellow driver
  *         content:
  *           application/json:
  *             schema:
@@ -568,13 +565,39 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Driver is now online
+ *                   example: "Driver is now online"
  *                 driver:
- *                   $ref: '#/components/schemas/Driver'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "60f7b3b3b3b3b3b3b3b3b3b3"
+ *                     isAvailable:
+ *                       type: boolean
+ *                       example: true
+ *                     liveFellowDriver:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: "60f7b3b3b3b3b3b3b3b3b3b4"
+ *                         name:
+ *                           type: string
+ *                           example: "John Doe"
  *       400:
- *         description: Invalid input
+ *         description: Bad request - Missing fellow driver ID, driver account not active, or fellow driver not approved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Fellow driver selection is required to go online"
  *       401:
  *         description: Unauthorized
+ *       404:
+ *         description: Driver not found
  *       500:
  *         description: Server error
  */
@@ -583,7 +606,8 @@
  * @swagger
  * /driverAuth/go-online-with-extra:
  *   post:
- *     summary: Set driver status to online with extra parameters
+ *     summary: Set driver status to online with extra driver (requires approved fellow driver)
+ *     description: Driver goes online with extra driver capability. Must select an approved fellow driver to go online.
  *     tags: [DriverAuth]
  *     security:
  *       - bearerAuth: []
@@ -595,26 +619,19 @@
  *             type: object
  *             required:
  *               - driverId
- *               - location
+ *               - fellowDriverId
  *             properties:
  *               driverId:
  *                 type: string
  *                 description: Driver ID
- *               location:
- *                 type: object
- *                 properties:
- *                   latitude:
- *                     type: number
- *                     description: Latitude coordinate
- *                   longitude:
- *                     type: number
- *                     description: Longitude coordinate
- *               extraParams:
- *                 type: object
- *                 description: Additional parameters
+ *                 example: "60f7b3b3b3b3b3b3b3b3b3b3"
+ *               fellowDriverId:
+ *                 type: string
+ *                 description: ID of approved fellow driver to select
+ *                 example: "60f7b3b3b3b3b3b3b3b3b3b4"
  *     responses:
  *       200:
- *         description: Driver is now online with extra parameters
+ *         description: Driver is now online with extra driver capability
  *         content:
  *           application/json:
  *             schema:
@@ -622,13 +639,34 @@
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Driver is now online with extra parameters
+ *                   example: "Driver is now online with extra driver"
  *                 driver:
- *                   $ref: '#/components/schemas/Driver'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "60f7b3b3b3b3b3b3b3b3b3b3"
+ *                     isAvailable:
+ *                       type: boolean
+ *                       example: true
+ *                     withExtraDriver:
+ *                       type: boolean
+ *                       example: true
+ *                     liveFellowDriver:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           example: "60f7b3b3b3b3b3b3b3b3b3b4"
+ *                         name:
+ *                           type: string
+ *                           example: "John Doe"
  *       400:
- *         description: Invalid input
+ *         description: Bad request - Missing fellow driver ID, driver account not active, or fellow driver not approved
  *       401:
  *         description: Unauthorized
+ *       404:
+ *         description: Driver not found
  *       500:
  *         description: Server error
  */
@@ -638,6 +676,7 @@
  * /driverAuth/go-offline:
  *   post:
  *     summary: Set driver status to offline
+ *     description: Driver goes offline and clears the selected fellow driver. All live requests are also cleared.
  *     tags: [DriverAuth]
  *     security:
  *       - bearerAuth: []
@@ -653,6 +692,7 @@
  *               driverId:
  *                 type: string
  *                 description: Driver ID
+ *                 example: "60f7b3b3b3b3b3b3b3b3b3b3"
  *     responses:
  *       200:
  *         description: Driver is now offline
@@ -666,11 +706,25 @@
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Driver is now offline
+ *                   example: "Driver is now offline"
  *                 driver:
- *                   $ref: '#/components/schemas/Driver'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "60f7b3b3b3b3b3b3b3b3b3b3"
+ *                     isAvailable:
+ *                       type: boolean
+ *                       example: false
+ *                     withExtraDriver:
+ *                       type: boolean
+ *                       example: false
+ *                     liveFellowDriver:
+ *                       type: string
+ *                       nullable: true
+ *                       example: null
  *       400:
- *         description: Invalid input
+ *         description: Invalid input - Missing driver ID
  *       401:
  *         description: Unauthorized
  *       404:

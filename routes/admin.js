@@ -35,6 +35,15 @@ const {
 } = require("../controllers/Withdrawal");
 
 const {
+  getAllFellowDrivers,
+  getPendingFellowDrivers,
+  getFellowDriverDetails,
+  approveFellowDriver,
+  rejectFellowDriver,
+  updateFellowDriverApproval,
+} = require("../controllers/AdminFellowDriver");
+
+const {
   authAdmin,
   requirePermission,
   requireAnyPermission,
@@ -176,6 +185,44 @@ router.put(
   authAdmin,
   requirePermission("system_settings"),
   rejectWithdrawalRequest
+);
+
+// ==================== FELLOW DRIVER MANAGEMENT ROUTES ====================
+router.get(
+  "/fellow-drivers",
+  authAdmin,
+  requirePermission("drivers_read"),
+  getAllFellowDrivers
+);
+router.get(
+  "/fellow-drivers/pending",
+  authAdmin,
+  requirePermission("drivers_read"),
+  getPendingFellowDrivers
+);
+router.get(
+  "/fellow-drivers/:fellowDriverId",
+  authAdmin,
+  requirePermission("drivers_read"),
+  getFellowDriverDetails
+);
+router.put(
+  "/fellow-drivers/:fellowDriverId/approve",
+  authAdmin,
+  requirePermission("drivers_approve"),
+  approveFellowDriver
+);
+router.put(
+  "/fellow-drivers/:fellowDriverId/reject",
+  authAdmin,
+  requirePermission("drivers_approve"),
+  rejectFellowDriver
+);
+router.put(
+  "/fellow-drivers/:fellowDriverId/approval",
+  authAdmin,
+  requirePermission("drivers_approve"),
+  updateFellowDriverApproval
 );
 
 module.exports = router;

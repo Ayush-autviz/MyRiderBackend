@@ -1,14 +1,19 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const rideSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   driver: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Driver',
+    ref: "Driver",
+    default: null,
+  },
+  fellowDriver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FellowDriver",
     default: null,
   },
   pickupLocation: {
@@ -31,23 +36,23 @@ const rideSchema = new mongoose.Schema({
   },
   vehicle: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Vehicle',
+    ref: "Vehicle",
     required: true,
   },
   status: {
     type: String,
     enum: [
-      'pending',                // Initial state when ride is created
-      'searchingDriver',        // Searching for available drivers
-      'accepted',               // Driver has accepted the ride
-      'arrived',                // Driver has arrived at pickup location and is waiting for customer
-      'otp_verified',           // OTP verified, customer has entered the cab
-      'in_progress',            // Ride is in progress (moving to destination)
-      'completed',              // Ride has been completed
-      'cancelled',              // Ride was cancelled
-      'noDriversFound'          // No drivers were found for the ride
+      "pending", // Initial state when ride is created
+      "searchingDriver", // Searching for available drivers
+      "accepted", // Driver has accepted the ride
+      "arrived", // Driver has arrived at pickup location and is waiting for customer
+      "otp_verified", // OTP verified, customer has entered the cab
+      "in_progress", // Ride is in progress (moving to destination)
+      "completed", // Ride has been completed
+      "cancelled", // Ride was cancelled
+      "noDriversFound", // No drivers were found for the ride
     ],
-    default: 'pending',
+    default: "pending",
   },
   rideOtp: {
     type: String,
@@ -90,14 +95,14 @@ const rideSchema = new mongoose.Schema({
 });
 
 // Create geospatial index for pickup location
-rideSchema.index({ 'pickupLocation.coordinates': '2dsphere' });
+rideSchema.index({ "pickupLocation.coordinates": "2dsphere" });
 
 // Update updatedAt timestamp on save
-rideSchema.pre('save', function(next) {
+rideSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-const Ride = mongoose.model('Ride', rideSchema);
+const Ride = mongoose.model("Ride", rideSchema);
 
 module.exports = Ride;

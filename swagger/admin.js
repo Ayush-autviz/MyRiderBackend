@@ -863,3 +863,255 @@
  *       403:
  *         description: Insufficient permissions
  */
+
+/**
+ * @swagger
+ * /admin/fellow-drivers:
+ *   get:
+ *     summary: Get all fellow drivers (Admin)
+ *     description: Admin can view all fellow drivers with filtering and pagination options
+ *     tags: [Admin - Fellow Drivers]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, approved, rejected]
+ *         description: Filter by approval status
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by name, mobile number, or license number
+ *       - in: query
+ *         name: driverId
+ *         schema:
+ *           type: string
+ *         description: Filter by main driver ID
+ *     responses:
+ *       200:
+ *         description: Fellow drivers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fellowDrivers:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/FellowDriver'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                         totalItems:
+ *                           type: integer
+ *                         itemsPerPage:
+ *                           type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /admin/fellow-drivers/pending:
+ *   get:
+ *     summary: Get pending fellow drivers for approval (Admin)
+ *     description: Admin can view all fellow drivers pending approval
+ *     tags: [Admin - Fellow Drivers]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: Pending fellow drivers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fellowDrivers:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/FellowDriver'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                         totalItems:
+ *                           type: integer
+ *                         itemsPerPage:
+ *                           type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /admin/fellow-drivers/{fellowDriverId}:
+ *   get:
+ *     summary: Get fellow driver details (Admin)
+ *     description: Admin can view detailed information about a specific fellow driver
+ *     tags: [Admin - Fellow Drivers]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fellowDriverId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fellow driver ID
+ *     responses:
+ *       200:
+ *         description: Fellow driver details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fellowDriver:
+ *                       $ref: '#/components/schemas/FellowDriver'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: Fellow driver not found
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /admin/fellow-drivers/{fellowDriverId}/approval:
+ *   put:
+ *     summary: Update fellow driver approval status (Admin)
+ *     description: Admin can approve or reject a fellow driver application
+ *     tags: [Admin - Fellow Drivers]
+ *     security:
+ *       - AdminBearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fellowDriverId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Fellow driver ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - action
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 enum: [approve, reject]
+ *                 description: Approval action
+ *               reason:
+ *                 type: string
+ *                 description: Rejection reason (required if action is reject)
+ *     responses:
+ *       200:
+ *         description: Fellow driver approval status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fellowDriver:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         approvalStatus:
+ *                           type: string
+ *                         rejectionReason:
+ *                           type: string
+ *                         approvedAt:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Bad request - Invalid action or missing rejection reason
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Insufficient permissions
+ *       404:
+ *         description: Fellow driver not found
+ *       500:
+ *         description: Server error
+ */

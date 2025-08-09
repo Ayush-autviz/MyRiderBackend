@@ -111,6 +111,7 @@ const handleSocketConnection = (io) => {
             withExtraDriver: false,
             lastHeartbeat: null,
             liveRequests: [],
+            liveFellowDriver: null,
           });
           socket.leave("availableDrivers");
           console.log(`Driver ${user.id} is now offline.`);
@@ -133,8 +134,10 @@ const handleSocketConnection = (io) => {
           });
 
           // Find driver with populated currentRide to get customer info
-          const driverWithRide = await Driver.findById(user.id).populate('currentRide');
-          
+          const driverWithRide = await Driver.findById(user.id).populate(
+            "currentRide"
+          );
+
           // Notify subscribed customers (existing functionality)
           socket.to(`driver_${user.id}`).emit("driverLocationUpdate", {
             driverId: user.id,
@@ -145,7 +148,11 @@ const handleSocketConnection = (io) => {
           });
 
           // If driver has an active ride, also emit to the customer
-          if (driverWithRide && driverWithRide.currentRide && driverWithRide.currentRide.customer) {
+          if (
+            driverWithRide &&
+            driverWithRide.currentRide &&
+            driverWithRide.currentRide.customer
+          ) {
             const customerId = driverWithRide.currentRide.customer.toString();
             socket.to(`customer_${customerId}`).emit("driverLocationUpdate", {
               driverId: user.id,
@@ -155,9 +162,13 @@ const handleSocketConnection = (io) => {
               },
               rideId: driverWithRide.currentRide._id,
             });
-            console.log(`Updated location for driver ${user.id} and notified customer ${customerId}`);
+            console.log(
+              `Updated location for driver ${user.id} and notified customer ${customerId}`
+            );
           } else {
-            console.log(`Updated location for driver ${user.id} (no active ride)`);
+            console.log(
+              `Updated location for driver ${user.id} (no active ride)`
+            );
           }
         } catch (error) {
           console.error("Error updating location:", error);
