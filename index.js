@@ -19,6 +19,7 @@ const adminRouter = require("./routes/admin");
 const adminEarningsRouter = require("./routes/adminEarnings");
 const walletRouter = require("./routes/wallet");
 const driverWalletRouter = require("./routes/driverWallet");
+const fellowDriverRouter = require("./routes/fellowDriver");
 
 const connectDB = require("./config/connect");
 const { swaggerSpec, swaggerUi } = require("./config/swagger");
@@ -96,6 +97,7 @@ app.use("/admin", adminRouter);
 app.use("/admin/earnings", adminEarningsRouter);
 app.use("/wallet", walletRouter);
 app.use("/driver/wallet", driverWalletRouter);
+app.use("/fellow-drivers", fellowDriverRouter);
 
 // Initialize commission settings
 const initializeCommission = async () => {
