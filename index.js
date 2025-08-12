@@ -99,6 +99,30 @@ app.use("/wallet", walletRouter);
 app.use("/driver/wallet", driverWalletRouter);
 app.use("/fellow-drivers", fellowDriverRouter);
 
+// Global Express error handler (must be after all routes)
+app.use((error, req, res, next) => {
+  console.error("Express Error:", error);
+
+  // Handle specific error types
+  if (error.code === "ECONNRESET" || error.code === "ECONNABORTED") {
+    console.log("Client connection reset - ignoring");
+    return;
+  }
+
+  if (error.type === "entity.parse.failed") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON payload",
+    });
+  }
+
+  // Default error response
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
 // Initialize commission settings
 const initializeCommission = async () => {
   try {
@@ -141,5 +165,16 @@ const start = async () => {
     console.error("Error starting server:", error);
   }
 };
+
+// Global error handlers
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
 
 start();

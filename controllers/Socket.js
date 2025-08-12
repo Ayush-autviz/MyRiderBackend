@@ -47,6 +47,15 @@ const handleSocketConnection = (io) => {
     const user = socket.user;
     console.log(`User connected: ${user.id}, Role: ${user.role}`);
 
+    // Handle socket errors
+    socket.on("error", (error) => {
+      console.error(`Socket error for user ${user.id}:`, error);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error(`Socket connection error for user ${user.id}:`, error);
+    });
+
     /**
      * DRIVER EVENTS
      */
