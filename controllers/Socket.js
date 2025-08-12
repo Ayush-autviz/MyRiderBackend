@@ -65,7 +65,7 @@ const handleSocketConnection = (io) => {
           //   isAvailable: true,
           //   currentLocation: {
           //     type: "Point",
-          //     coordinates: [coords.longitude, coords.latitude],
+          //     coordinates: [coords.latitude, coords.longitude],
           //     lastUpdated: new Date(),
           //   },
           //   lastHeartbeat: new Date(),
@@ -122,12 +122,13 @@ const handleSocketConnection = (io) => {
 
       // Driver updates location
       socket.on("updateLocation", async (coords) => {
+        console.log(coords, "driver update");
         try {
           // Update driver location
           await Driver.findByIdAndUpdate(user.id, {
             currentLocation: {
               type: "Point",
-              coordinates: [coords.longitude, coords.latitude],
+              coordinates: [coords.latitude, coords.longitude],
               lastUpdated: new Date(),
             },
             lastHeartbeat: new Date(),

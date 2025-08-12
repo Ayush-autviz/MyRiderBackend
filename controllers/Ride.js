@@ -130,18 +130,20 @@ const createRide = async (req, res) => {
       // Determine if extra driver is needed
       const needsExtraDriver = vehicle.type.includes("WithExtraDriver");
 
+      console.log(needsExtraDriver, "need extra driver");
+
       // Find nearby drivers matching vehicle type and extra driver requirement
       const nearbyDrivers = await Driver.find({
         isAvailable: true,
         vehicleType: vehicle.type.includes("car") ? "car" : "bike",
-        withExtraDriver: needsExtraDriver,
+        //   withExtraDriver: needsExtraDriver,
         currentRide: null, // Exclude drivers with active rides
         currentLocation: {
           $geoWithin: {
             $centerSphere: [
               [
-                ride.pickupLocation.coordinates[1],
                 ride.pickupLocation.coordinates[0],
+                ride.pickupLocation.coordinates[1],
               ],
               5 / 6378.1, // 5km radius
             ],
