@@ -318,6 +318,7 @@ const getRideById = async (req, res) => {
       fare: ride.fare,
       status: ride.status,
       driver: ride.driver,
+      felowDriver: ride.fellowDriver,
       createdAt: ride.createdAt,
       updatedAt: ride.updatedAt,
       rating: ride.rating,
