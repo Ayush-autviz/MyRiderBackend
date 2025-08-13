@@ -54,7 +54,7 @@ const getAllFellowDrivers = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       success: true,
       data: {
-        fellowDrivers: fellowDrivers.map(fd => ({
+        fellowDrivers: fellowDrivers.map((fd) => ({
           id: fd._id,
           name: fd.name,
           gender: fd.gender,
@@ -102,7 +102,7 @@ const getPendingFellowDrivers = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       success: true,
       data: {
-        fellowDrivers: fellowDrivers.map(fd => ({
+        fellowDrivers: fellowDrivers.map((fd) => ({
           id: fd._id,
           name: fd.name,
           gender: fd.gender,
@@ -178,7 +178,7 @@ const getFellowDriverDetails = async (req, res) => {
 const approveFellowDriver = async (req, res) => {
   try {
     const { fellowDriverId } = req.params;
-    const adminId = req.user.id;
+    const adminId = req.admin.id;
 
     const fellowDriver = await FellowDriver.findById(fellowDriverId);
 
@@ -224,7 +224,7 @@ const rejectFellowDriver = async (req, res) => {
   try {
     const { fellowDriverId } = req.params;
     const { reason } = req.body;
-    const adminId = req.user.id;
+    const adminId = req.admin.id;
 
     if (!reason || reason.trim() === "") {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -277,7 +277,7 @@ const updateFellowDriverApproval = async (req, res) => {
   try {
     const { fellowDriverId } = req.params;
     const { action, reason } = req.body;
-    const adminId = req.user.id;
+    const adminId = req.admin.id;
 
     if (!["approve", "reject"].includes(action)) {
       return res.status(StatusCodes.BAD_REQUEST).json({
