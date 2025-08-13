@@ -169,7 +169,14 @@ const start = async () => {
 // Global error handlers
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
-  process.exit(1);
+  ///process.exit(1);
+  setTimeout(() => {
+    // Clear any cached modules
+    //  Object.keys(require.cache).forEach((key) => delete require.cache[key]);
+    console.log("restarting the function");
+    // Restart the start() function
+    start();
+  }, 3000);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
