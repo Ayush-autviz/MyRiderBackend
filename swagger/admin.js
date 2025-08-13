@@ -1115,3 +1115,200 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /admin/vehicles:
+ *   get:
+ *     summary: Get all vehicles
+ *     tags: [Admin - Vehicle Management]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Vehicles retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Vehicles retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     vehicles:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Vehicle'
+ *                     count:
+ *                       type: number
+ *                       example: 4
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /admin/vehicles/{vehicleId}:
+ *   get:
+ *     summary: Get vehicle details
+ *     tags: [Admin - Vehicle Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: vehicleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Vehicle ID
+ *     responses:
+ *       200:
+ *         description: Vehicle details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Vehicle details retrieved successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     vehicle:
+ *                       $ref: '#/components/schemas/Vehicle'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       404:
+ *         description: Vehicle not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * /admin/vehicles/{vehicleId}/price:
+ *   put:
+ *     summary: Update vehicle price per km
+ *     tags: [Admin - Vehicle Management]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: vehicleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Vehicle ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pricePerKm
+ *             properties:
+ *               pricePerKm:
+ *                 type: number
+ *                 minimum: 0
+ *                 example: 15
+ *                 description: New price per kilometer
+ *     responses:
+ *       200:
+ *         description: Vehicle price updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Vehicle price updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     vehicle:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                         type:
+ *                           type: string
+ *                         pricePerKm:
+ *                           type: number
+ *                         description:
+ *                           type: string
+ *                         updatedAt:
+ *                           type: string
+ *                           format: date-time
+ *                     change:
+ *                       type: object
+ *                       properties:
+ *                         oldPrice:
+ *                           type: number
+ *                         newPrice:
+ *                           type: number
+ *                         difference:
+ *                           type: number
+ *       400:
+ *         description: Bad request - Invalid price
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       404:
+ *         description: Vehicle not found
+ *       500:
+ *         description: Internal server error
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Vehicle:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           example: 507f1f77bcf86cd799439011
+ *         type:
+ *           type: string
+ *           enum: [bike, car, carWithExtraDriver, bikeWithExtraDriver]
+ *           example: car
+ *         pricePerKm:
+ *           type: number
+ *           minimum: 0
+ *           example: 15
+ *         description:
+ *           type: string
+ *           example: Standard car for up to 4 passengers. Comfortable and spacious for city travel.
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - type
+ *         - pricePerKm
+ */

@@ -20,6 +20,9 @@ const {
   getRideDetails,
   cancelRide,
   getAnalytics,
+  getAllVehicles,
+  getVehicleDetails,
+  updateVehiclePrice,
 } = require("../controllers/Admin");
 
 const {
@@ -185,6 +188,26 @@ router.put(
   authAdmin,
   requirePermission("system_settings"),
   rejectWithdrawalRequest
+);
+
+// ==================== VEHICLE MANAGEMENT ROUTES ====================
+router.get(
+  "/vehicles",
+  authAdmin,
+  requirePermission("system_settings"),
+  getAllVehicles
+);
+router.get(
+  "/vehicles/:vehicleId",
+  authAdmin,
+  requirePermission("system_settings"),
+  getVehicleDetails
+);
+router.put(
+  "/vehicles/:vehicleId/price",
+  authAdmin,
+  requirePermission("system_settings"),
+  updateVehiclePrice
 );
 
 // ==================== FELLOW DRIVER MANAGEMENT ROUTES ====================

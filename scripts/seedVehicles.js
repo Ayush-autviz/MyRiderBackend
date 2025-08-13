@@ -19,21 +19,6 @@ const connectDB = async () => {
 // Seed data for vehicles
 const vehicleData = [
   {
-    type: 'bike',
-    pricePerKm: 8,
-    description: 'Standard motorcycle for single riders. Economical and quick for navigating through traffic.'
-  },
-  {
-    type: 'car',
-    pricePerKm: 15,
-    description: 'Standard car for up to 4 passengers. Comfortable and spacious for city travel.'
-  },
-  {
-    type: 'bikeWithExtraDriver',
-    pricePerKm: 12,
-    description: 'Motorcycle with an additional driver for longer trips or when you need a return ride.'
-  },
-  {
     type: 'carWithExtraDriver',
     pricePerKm: 20,
     description: 'Car with an additional driver for longer trips, events, or when you need a return ride.'

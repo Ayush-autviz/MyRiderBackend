@@ -701,7 +701,7 @@ const getUserRides = async (req, res) => {
 
     const [rides, totalRides] = await Promise.all([
       Ride.find(query)
-        .populate('driver', 'firstName lastName phone averageRating')
+        .populate('driver', 'firstName lastName phone')
         .populate('vehicle', 'type pricePerKm')
         .sort(sortOptions)
         .skip(skip)
@@ -1314,6 +1314,114 @@ const getAnalytics = async (req, res) => {
   }
 };
 
+// ==================== VEHICLE MANAGEMENT ====================
+
+// Get all vehicles
+const getAllVehicles = async (req, res) => {
+  try {
+    const vehicles = await Vehicle.find().sort({ type: 1 });
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Vehicles retrieved successfully",
+      data: {
+        vehicles,
+        count: vehicles.length,
+      },
+    });
+  } catch (error) {
+    console.error("Get all vehicles error:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve vehicles",
+    });
+  }
+};
+
+// Get vehicle details
+const getVehicleDetails = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Vehicle details retrieved successfully",
+      data: {
+        vehicle,
+      },
+    });
+  } catch (error) {
+    console.error("Get vehicle details error:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve vehicle details",
+    });
+  }
+};
+
+// Update vehicle price
+const updateVehiclePrice = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const { pricePerKm } = req.body;
+
+    if (!pricePerKm || pricePerKm < 0) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Valid price per km is required",
+      });
+    }
+
+    const vehicle = await Vehicle.findById(vehicleId);
+    if (!vehicle) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Vehicle not found",
+      });
+    }
+
+    // Store old price for logging
+    const oldPrice = vehicle.pricePerKm;
+
+    // Update the price
+    vehicle.pricePerKm = pricePerKm;
+    await vehicle.save();
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Vehicle price updated successfully",
+      data: {
+        vehicle: {
+          id: vehicle._id,
+          type: vehicle.type,
+          pricePerKm: vehicle.pricePerKm,
+          description: vehicle.description,
+          updatedAt: vehicle.updatedAt,
+        },
+        change: {
+          oldPrice,
+          newPrice: vehicle.pricePerKm,
+          difference: vehicle.pricePerKm - oldPrice,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Update vehicle price error:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to update vehicle price",
+    });
+  }
+};
+
 module.exports = {
   adminLogin,
   refreshToken,
@@ -1333,4 +1441,7 @@ module.exports = {
   getRideDetails,
   cancelRide,
   getAnalytics,
+  getAllVehicles,
+  getVehicleDetails,
+  updateVehiclePrice,
 };
