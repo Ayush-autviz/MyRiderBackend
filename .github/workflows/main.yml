@@ -22,6 +22,6 @@ jobs:
           # Pull latest code
           cd /home/ubuntu/MyRiderBackend
           git pull origin master
-          docker rm $(docker ps -a -q --filter ancestor=myrider_backend)
+          docker rm -f $(docker ps -a -q --filter ancestor=myrider_backend)
           docker image prune -fa
           docker run -d -p 3000:3000 myrider_backend          
