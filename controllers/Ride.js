@@ -282,7 +282,7 @@ const getRideById = async (req, res) => {
     console.log(rideId, "ride details id");
 
     const ride = await Ride.findById(rideId)
-      .populate("driver", "firstName lastName phone vehicleDetails")
+      .populate("driver", "firstName lastName phone vehicleDetails documents")
       .populate("fellowDriver", "name gender mobileNumber profilePhoto")
       .populate("vehicle");
 
