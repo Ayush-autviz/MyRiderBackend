@@ -149,6 +149,8 @@ const register = async (req, res) => {
 const verifyOtp = async (req, res) => {
   const { otp, phone } = req.body;
 
+  console.log(phone,otp,'tsting')
+
   if (!otp || !phone) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       success: false,
@@ -166,14 +168,25 @@ const verifyOtp = async (req, res) => {
       });
     }
 
-    if (user.otp !== otp) {
+    // Special handling for test phone number +27790671168
+    const isTestPhone = phone === "+27790671168";
+    if (!isTestPhone && user.otp !== otp) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: "Invalid OTP",
       });
     }
 
-    if (user.otpExpires < new Date()) {
+    // For test phone, only check if OTP is "1234"
+    if (isTestPhone && otp !== "1234") {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // Skip OTP expiration check for test phone number
+    if (!isTestPhone && user.otpExpires < new Date()) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: "OTP has expired",

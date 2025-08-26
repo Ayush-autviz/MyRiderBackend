@@ -99,14 +99,25 @@ const verifyOtp = async (req, res) => {
       });
     }
 
-    if (driver.otp !== otp) {
+    // Special handling for test phone number +27790671168
+    const isTestPhone = phone === "+27790671168";
+    if (!isTestPhone && driver.otp !== otp) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: "Invalid OTP",
       });
     }
 
-    if (driver.otpExpires < new Date()) {
+    // For test phone, only check if OTP is "1234"
+    if (isTestPhone && otp !== "1234") {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // Skip OTP expiration check for test phone number
+    if (!isTestPhone && driver.otpExpires < new Date()) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
         message: "OTP has expired",
