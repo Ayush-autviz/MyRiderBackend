@@ -18,6 +18,7 @@ const {
   editVehicleDetails,
   editDriverDocuments,
   verifyOtp,
+  deleteDriverAccount,
 } = require("../controllers/DriverAuth");
 
 const upload = require("../middlewares/Upload");
@@ -91,6 +92,9 @@ router.put(
 );
 
 router.get("/driverHistory", authdriver, getDriverRides);
+
+// Delete driver account
+router.post("/delete-account", deleteDriverAccount);
 
 // Fellow driver management routes
 router.use("/fellow-drivers", fellowDriverRoutes);

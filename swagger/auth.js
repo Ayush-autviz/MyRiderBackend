@@ -272,3 +272,92 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /auth/delete-account:
+ *   delete:
+ *     summary: Delete user account and all associated data
+ *     description: Permanently deletes the user account and all related data including rides, wallet transactions, and ratings. Cannot delete account while having an active ride.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - phone
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 description: User's phone number to identify the account for deletion
+ *                 example: "+919876543210"
+ *     responses:
+ *       200:
+ *         description: User account deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User account deleted successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     deletedUserId:
+ *                       type: string
+ *                       description: ID of the deleted user
+ *                       example: "60d0fe4f5311236168a109ca"
+ *                     phone:
+ *                       type: string
+ *                       description: Phone number of the deleted user
+ *                       example: "+919876543210"
+ *       400:
+ *         description: Bad request - Missing phone number or user has active ride
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot delete account while having an active ride"
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "User not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to delete user account"
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message
+ */

@@ -268,9 +268,84 @@ const refreshToken = async (req, res) => {
   }
 };
 
+// Delete user account
+const deleteUserAccount = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    console.log("delete account body",req.body)
+
+    if (!phone) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // Find the user by phone number
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if user has any active rides
+    if (user.currentRide) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Cannot delete account while having an active ride",
+      });
+    }
+
+    // Import related models for cleanup
+    // const Ride = require("../models/Ride");
+    // const WalletTransaction = require("../models/WalletTransaction");
+    // const PayFastTransaction = require("../models/PayFastTransaction");
+    // const Rating = require("../models/Rating");
+
+    // Delete related data
+    // await Promise.all([
+    //   // Delete all rides associated with this user
+    //   Ride.deleteMany({ customer: user._id }),
+      
+    //   // Delete all wallet transactions
+    //   WalletTransaction.deleteMany({ user: user._id }),
+      
+    //   // Delete all PayFast transactions
+    //   PayFastTransaction.deleteMany({ user: user._id }),
+      
+    //   // Delete all ratings given by this user
+    //   Rating.deleteMany({ user: user._id }),
+    // ]);
+
+    // Delete the user
+    await User.findByIdAndDelete(user._id);
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "User account deleted successfully",
+      data: {
+        deletedUserId: user._id,
+        phone: user.phone,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to delete user account",
+      error: error.message,ele
+    });
+  }
+};
+
 module.exports = {
   auth,
   register,
   verifyOtp,
   refreshToken,
+  deleteUserAccount,
 };

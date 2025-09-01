@@ -732,3 +732,96 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /driverAuth/delete-account:
+ *   delete:
+ *     summary: Delete driver account and all associated data
+ *     description: Permanently deletes the driver account and all related data including rides, wallet transactions, ratings, fellow driver relationships, and uploaded files. Cannot delete account while online or having an active ride.
+ *     tags: [DriverAuth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - phone
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 description: Driver's phone number to identify the account for deletion
+ *                 example: "+919876543210"
+ *     responses:
+ *       200:
+ *         description: Driver account deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Driver account deleted successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     deletedDriverId:
+ *                       type: string
+ *                       description: ID of the deleted driver
+ *                       example: "60d0fe4f5311236168a109cb"
+ *                     phone:
+ *                       type: string
+ *                       description: Phone number of the deleted driver
+ *                       example: "+919876543210"
+ *                     deletedFiles:
+ *                       type: number
+ *                       description: Number of uploaded files that were deleted
+ *                       example: 5
+ *       400:
+ *         description: Bad request - Missing phone number or driver is online/has active ride
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Cannot delete account while online or having an active ride"
+ *       404:
+ *         description: Driver not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Driver not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Failed to delete driver account"
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message
+ */

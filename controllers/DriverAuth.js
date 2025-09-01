@@ -868,6 +868,122 @@ const editDriverDocuments = async (req, res) => {
   }
 };
 
+// Delete driver account
+const deleteDriverAccount = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // Find the driver by phone number
+    const driver = await Driver.findOne({ phone });
+
+    if (!driver) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    // Check if driver is currently online or has active rides
+    if (driver.isAvailable || driver.currentRide) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Cannot delete account while online or having an active ride",
+      });
+    }
+
+    // Import related models for cleanup
+    const Ride = require("../models/Ride");
+    const WalletTransaction = require("../models/WalletTransaction");
+    const WithdrawalRequest = require("../models/WithdrawalRequest");
+  //  const Rating = require("../models/Rating");
+    const FellowDriver = require("../models/FellowDriver");
+    const AdminEarnings = require("../models/AdminEarnings");
+
+    // Delete related data
+    await Promise.all([
+      // Delete all rides associated with this driver
+      Ride.deleteMany({ driver: driver._id }),
+      
+      // Delete all wallet transactions
+      WalletTransaction.deleteMany({ driver: driver._id }),
+      
+      // Delete all withdrawal requests
+      WithdrawalRequest.deleteMany({ driver: driver._id }),
+      
+      // Delete all ratings for this driver
+      // Rating.deleteMany({ driver: driver._id }),
+      
+      // Delete all fellow driver relationships
+      FellowDriver.deleteMany({ driver: driver._id }),
+      
+      // Delete admin earnings records
+      AdminEarnings.deleteMany({ driver: driver._id }),
+    ]);
+
+    // Delete uploaded files if they exist
+    const fs = require("fs").promises;
+    const filesToDelete = [];
+
+    // Add vehicle images
+    if (driver.vehicleDetails?.vehicleImage?.image) {
+      filesToDelete.push(driver.vehicleDetails.vehicleImage.image);
+    }
+    if (driver.vehicleDetails?.numberPlateImage?.image) {
+      filesToDelete.push(driver.vehicleDetails.numberPlateImage.image);
+    }
+
+    // Add document images
+    if (driver.documents?.drivingLicense?.front) {
+      filesToDelete.push(driver.documents.drivingLicense.front);
+    }
+    if (driver.documents?.drivingLicense?.back) {
+      filesToDelete.push(driver.documents.drivingLicense.back);
+    }
+    if (driver.documents?.vehicleRegistration?.image) {
+      filesToDelete.push(driver.documents.vehicleRegistration.image);
+    }
+    if (driver.documents?.profilePhoto?.image) {
+      filesToDelete.push(driver.documents.profilePhoto.image);
+    }
+
+    // Delete the driver
+    await Driver.findByIdAndDelete(driver._id);
+
+    // Delete uploaded files
+    for (const filePath of filesToDelete) {
+      try {
+        await fs.unlink(filePath);
+      } catch (err) {
+        console.error(`Failed to delete file ${filePath}:`, err);
+      }
+    }
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Driver account deleted successfully",
+      data: {
+        deletedDriverId: driver._id,
+        phone: driver.phone,
+        deletedFiles: filesToDelete.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting driver account:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to delete driver account",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   auth,
   registerDriver,
@@ -882,4 +998,5 @@ module.exports = {
   updateDriverStatus,
   editVehicleDetails,
   editDriverDocuments,
+  deleteDriverAccount,
 };
