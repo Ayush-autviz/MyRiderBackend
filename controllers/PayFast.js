@@ -57,8 +57,8 @@ const createPayFastPayment = async (req, res) => {
     const paymentData = {
       merchant_id: getPayFastConfig().merchantId,
       merchant_key: getPayFastConfig().merchantKey,
-      return_url: `${process.env.FRONTEND_URL}/wallet/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/wallet/cancel`,
+      return_url: `https://api.mydriversa.co.za/wallet/success`,
+      cancel_url: `https://api.mydriversa.co.za/wallet/success`,
       notify_url: process.env.NODE_ENV === 'production' ? `${process.env.BACKEND_URL}/wallet/payfast/notify` : `${process.env.BACKEND_URL}/wallet/payfast/notify`,
       name_first: user.firstName || 'Customer',
       name_last: user.lastName || '',
