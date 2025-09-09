@@ -145,7 +145,7 @@ const createRide = async (req, res) => {
                 ride.pickupLocation.coordinates[0],
                 ride.pickupLocation.coordinates[1],
               ],
-              5 / 6378.1, // 5km radius
+              15 / 6378.1, // 5km radius
             ],
           },
         },

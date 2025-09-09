@@ -397,7 +397,7 @@ const getDriverDetails = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Driver details retrieved successfully",
-      data: driver,
+      data: {id:driver._id,...driver},
     });
   } catch (error) {
     console.error("Error retrieving driver details:", error);
