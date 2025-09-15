@@ -76,6 +76,110 @@ const addFellowDriver = async (req, res) => {
   }
 };
 
+// Find a fellow driver by mobile number
+const findFellowDriverByNumber = async (req, res) => {
+  try {
+    const { mobileNumber } = req.query;
+
+    if (!mobileNumber || typeof mobileNumber !== "string") {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Query param 'mobileNumber' is required",
+      });
+    }
+
+    const fellowDriver = await FellowDriver.findOne({
+      mobileNumber,
+      isActive: true,
+    });
+
+    if (!fellowDriver) {
+      return res.status(StatusCodes.OK).json({ success: true, data: { fellowDriver: null } });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        fellowDriver: {
+          id: fellowDriver._id,
+          name: fellowDriver.name,
+          gender: fellowDriver.gender,
+          mobileNumber: fellowDriver.mobileNumber,
+          approvalStatus: fellowDriver.approvalStatus,
+          driver: fellowDriver.driver,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error finding fellow driver by number:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to lookup fellow driver",
+    });
+  }
+};
+
+// Link an existing fellow driver (by mobile number) to the current driver's list
+const linkFellowDriverByNumber = async (req, res) => {
+  try {
+    const driverId = req.user.id;
+    const { mobileNumber } = req.body;
+
+    if (!mobileNumber || typeof mobileNumber !== "string") {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: "Body field 'mobileNumber' is required",
+      });
+    }
+
+    const [driver, fellowDriver] = await Promise.all([
+      Driver.findById(driverId),
+      FellowDriver.findOne({ mobileNumber, isActive: true }),
+    ]);
+
+    if (!driver) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    if (!fellowDriver) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Fellow driver with this number not found",
+      });
+    }
+
+    // Ensure the fellow driver belongs to the same driver (ownership model)
+    // if (String(fellowDriver.driver) !== String(driverId)) {
+    //   return res.status(StatusCodes.CONFLICT).json({
+    //     success: false,
+    //     message: "This fellow driver belongs to another driver and cannot be linked",
+    //   });
+    // }
+
+    // Add to driver's list if not already present
+    const alreadyLinked = driver.fellowDrivers.some((id) => String(id) === String(fellowDriver._id));
+    if (!alreadyLinked) {
+      driver.fellowDrivers.push(fellowDriver._id);
+      await driver.save();
+    }
+
+    return res.status(StatusCodes.OK).json({
+      success: true,
+      message: alreadyLinked ? "Fellow driver already linked" : "Fellow driver linked successfully",
+      data: { fellowDriverId: fellowDriver._id },
+    });
+  } catch (error) {
+    console.error("Error linking fellow driver by number:", error);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to link fellow driver",
+    });
+  }
+};
+
 // Get all fellow drivers for a driver
 const getFellowDrivers = async (req, res) => {
   try {
@@ -264,4 +368,6 @@ module.exports = {
   getApprovedFellowDrivers,
   updateFellowDriver,
   deleteFellowDriver,
+  findFellowDriverByNumber,
+  linkFellowDriverByNumber,
 };

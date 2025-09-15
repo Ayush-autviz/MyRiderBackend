@@ -10,6 +10,8 @@ const {
   getApprovedFellowDrivers,
   updateFellowDriver,
   deleteFellowDriver,
+  findFellowDriverByNumber,
+  linkFellowDriverByNumber,
 } = require("../controllers/FellowDriver");
 
 // Fellow driver management routes for drivers
@@ -26,6 +28,7 @@ router.post(
 
 router.get("/", authDriver, getFellowDrivers);
 router.get("/approved", authDriver, getApprovedFellowDrivers);
+router.get("/lookup", authDriver, findFellowDriverByNumber);
 
 router.put(
   "/:fellowDriverId",
@@ -39,5 +42,8 @@ router.put(
 );
 
 router.delete("/:fellowDriverId", authDriver, deleteFellowDriver);
+
+// Link existing fellow driver by mobile number to current driver's list
+router.post("/link-by-number", authDriver, linkFellowDriverByNumber);
 
 module.exports = router;
