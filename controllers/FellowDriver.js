@@ -79,7 +79,7 @@ const addFellowDriver = async (req, res) => {
 // Find a fellow driver by mobile number
 const findFellowDriverByNumber = async (req, res) => {
   try {
-    const { mobileNumber } = req.query;
+    const { mobileNumber } = req.body;
 
     if (!mobileNumber || typeof mobileNumber !== "string") {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -88,10 +88,14 @@ const findFellowDriverByNumber = async (req, res) => {
       });
     }
 
+    console.log(mobileNumber,'mobileNumber')
+
     const fellowDriver = await FellowDriver.findOne({
       mobileNumber,
       isActive: true,
     });
+
+    console.log(fellowDriver)
 
     if (!fellowDriver) {
       return res.status(StatusCodes.OK).json({ success: true, data: { fellowDriver: null } });
