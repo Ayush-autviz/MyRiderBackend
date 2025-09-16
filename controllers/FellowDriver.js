@@ -131,6 +131,8 @@ const linkFellowDriverByNumber = async (req, res) => {
     const driverId = req.user.id;
     const { mobileNumber } = req.body;
 
+    console.log(mobileNumber);
+
     if (!mobileNumber || typeof mobileNumber !== "string") {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
@@ -142,6 +144,8 @@ const linkFellowDriverByNumber = async (req, res) => {
       Driver.findById(driverId),
       FellowDriver.findOne({ mobileNumber, isActive: true }),
     ]);
+
+    console.log(driver,fellowDriver,'driver feloow driver');
 
     if (!driver) {
       return res.status(StatusCodes.NOT_FOUND).json({
@@ -191,10 +195,22 @@ const getFellowDrivers = async (req, res) => {
   try {
     const driverId = req.user.id;
 
-    const fellowDrivers = await FellowDriver.find({
-      driver: driverId,
-      isActive: true,
-    }).sort({ createdAt: -1 });
+    // First get the driver with populated fellowDrivers
+    const driver = await Driver.findById(driverId).populate({
+      path: 'fellowDrivers',
+      match: { isActive: true },
+      options: { sort: { createdAt: -1 } }
+    });
+
+    if (!driver) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        success: false,
+        message: "Driver not found",
+      });
+    }
+
+    // Filter out null values (in case some fellow drivers are inactive)
+    const fellowDrivers = driver.fellowDrivers.filter(fd => fd !== null);
 
     return res.status(StatusCodes.OK).json({
       success: true,
