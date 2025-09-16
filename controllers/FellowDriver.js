@@ -80,6 +80,7 @@ const addFellowDriver = async (req, res) => {
 const findFellowDriverByNumber = async (req, res) => {
   try {
     const { mobileNumber } = req.body;
+    console.log(req.body,'req.body')
     console.log(mobileNumber,'mobileNumber')
 
     if (!mobileNumber || typeof mobileNumber !== "string") {
