@@ -28,7 +28,7 @@ router.post(
 
 router.get("/", authDriver, getFellowDrivers);
 router.get("/approved", authDriver, getApprovedFellowDrivers);
-router.get("/lookup", authDriver, findFellowDriverByNumber);
+router.post("/lookup", authDriver, findFellowDriverByNumber);
 
 router.put(
   "/:fellowDriverId",
