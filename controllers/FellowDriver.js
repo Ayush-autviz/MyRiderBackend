@@ -80,6 +80,7 @@ const addFellowDriver = async (req, res) => {
 const findFellowDriverByNumber = async (req, res) => {
   try {
     const { mobileNumber } = req.body;
+    console.log(mobileNumber,'mobileNumber')
 
     if (!mobileNumber || typeof mobileNumber !== "string") {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -88,7 +89,7 @@ const findFellowDriverByNumber = async (req, res) => {
       });
     }
 
-    console.log(mobileNumber,'mobileNumber')
+    
 
     const fellowDriver = await FellowDriver.findOne({
       mobileNumber,
