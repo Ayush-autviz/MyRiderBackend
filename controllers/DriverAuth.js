@@ -516,7 +516,6 @@ const goOnline = async (req, res) => {
     const FellowDriver = require("../models/FellowDriver");
     const fellowDriver = await FellowDriver.findOne({
       _id: fellowDriverId,
-      driver: driverId,
       approvalStatus: "approved",
       isActive: true,
     });
