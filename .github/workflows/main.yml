@@ -23,5 +23,5 @@ jobs:
           cd /home/ubuntu/MyRiderBackend
           git pull origin master
           docker image prune -fa
-          docker compose down
-          docker compose up -d --build 
+          docker-compose down
+          docker-compose up -d --build 
