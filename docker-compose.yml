@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  myrider-backend:
+    build: .
+    container_name: myrider-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/ubuntu/MyRiderBackend/uploads:/usr/src/app/uploads
+    restart: unless-stopped
