@@ -57,6 +57,10 @@ const userSchema = new Schema(
       ref: 'Ride',
       default: null,
     },
+    fcmToken: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

@@ -5,6 +5,7 @@ const Driver = require("../models/Driver");
 const geolib = require("geolib");
 const { StatusCodes } = require("http-status-codes");
 const { WalletService } = require("./Wallet");
+const fcmService = require("../services/fcmService");
 const {
   normalizeCoordinates,
   validateCoordinates,
@@ -206,6 +207,21 @@ const createRide = async (req, res) => {
             vehicle: vehicle,
             fare: ride.fare,
           });
+
+          // Send FCM notification to driver
+          if (driver.fcmToken) {
+            await fcmService.sendToToken(driver.fcmToken, {
+              title: "New Ride Request",
+              body: `You have a new ride request from ${user.firstName || 'Customer'}`,
+            }, {
+              rideId: ride._id.toString(),
+              type: 'ride_requested',
+              customerId: user.id,
+              fare: ride.fare,
+              pickupLocation: JSON.stringify(ride.pickupLocation),
+              destination: JSON.stringify(ride.destination),
+            });
+          }
         });
 
         await Promise.all(notificationPromises);

@@ -5,6 +5,7 @@ const CommissionSettings = require("../models/CommissionSettings");
 const AdminEarnings = require("../models/AdminEarnings");
 const { StatusCodes } = require("http-status-codes");
 const { WalletService } = require("./Wallet");
+const fcmService = require("../services/fcmService");
 
 // Generate 4-digit OTP for ride verification
 function generateRideOTP() {
@@ -107,6 +108,20 @@ const acceptRide = async (req, res) => {
         .emit("subscribeToDriverLocation", driverId);
     }
 
+    // Send FCM notification to customer
+    if (user.fcmToken) {
+      await fcmService.sendToToken(user.fcmToken, {
+        title: "Ride Accepted",
+        body: `Your ride has been accepted by ${driver.firstName || 'Driver'}`,
+      }, {
+        rideId: rideId,
+        type: 'ride_accepted',
+        driverId: driverId,
+        driverName: driver.firstName || 'Driver',
+        fare: ride.fare,
+      });
+    }
+
     // Notify other drivers that ride is taken and remove from their liveRequests
     const nearbyDrivers = await Driver.find({
       "liveRequests.rideId": rideId,
@@ -182,6 +197,19 @@ const driverArrived = async (req, res) => {
         rideId: ride._id,
         message: "Your driver has arrived at the pickup location",
         rideOtp,
+      });
+    }
+
+    // Send FCM notification to customer
+    const customer = await User.findById(ride.customer);
+    if (customer && customer.fcmToken) {
+      await fcmService.sendToToken(customer.fcmToken, {
+        title: "Driver Arrived",
+        body: "Your driver has arrived at the pickup location",
+      }, {
+        rideId: rideId,
+        type: 'driver_arrived',
+        rideOtp: rideOtp,
       });
     }
 
@@ -466,6 +494,38 @@ const completeRide = async (req, res) => {
         commission: commissionAmount,
         newWalletBalance: driverWalletResult.newBalance,
         message: "Ride completed successfully",
+      });
+    }
+
+    // Send FCM notifications
+    const customer = await User.findById(ride.customer);
+    const driver = await Driver.findById(driverId);
+
+    // Notify customer
+    if (customer && customer.fcmToken) {
+      await fcmService.sendToToken(customer.fcmToken, {
+        title: "Ride Completed",
+        body: "Your ride has been completed successfully",
+      }, {
+        rideId: rideId,
+        type: 'ride_completed',
+        fare: ride.fare,
+        driverEarning: driverEarning,
+      });
+    }
+
+    // Notify driver
+    if (driver && driver.fcmToken) {
+      await fcmService.sendToToken(driver.fcmToken, {
+        title: "Ride Completed",
+        body: `You earned $${driverEarning} from this ride`,
+      }, {
+        rideId: rideId,
+        type: 'ride_completed',
+        totalFare: ride.fare,
+        earning: driverEarning,
+        commission: commissionAmount,
+        newWalletBalance: driverWalletResult.newBalance,
       });
     }
 

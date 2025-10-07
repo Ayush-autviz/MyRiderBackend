@@ -20,10 +20,12 @@ const adminEarningsRouter = require("./routes/adminEarnings");
 const walletRouter = require("./routes/wallet");
 const driverWalletRouter = require("./routes/driverWallet");
 const fellowDriverRouter = require("./routes/fellowDriver");
+const fcmRouter = require("./routes/fcm");
 
 const connectDB = require("./config/connect");
 const { swaggerSpec, swaggerUi } = require("./config/swagger");
 const seedVehicles = require("./utils/seedVehicles");
+const { initializeFCM } = require("./config/fcmConfig");
 
 const handleSocketConnection = require("./controllers/Socket");
 const { startHeartbeatChecker } = require("./jobs/heartbeatChecker");
@@ -98,6 +100,7 @@ app.use("/admin/earnings", adminEarningsRouter);
 app.use("/wallet", walletRouter);
 app.use("/driver/wallet", driverWalletRouter);
 app.use("/fellow-drivers", fellowDriverRouter);
+app.use("/fcm", fcmRouter);
 
 // Global Express error handler (must be after all routes)
 app.use((error, req, res, next) => {
@@ -146,6 +149,9 @@ const start = async () => {
   try {
     // Connect to MongoDB
     await connectDB(process.env.MONGO_URI);
+
+    // Initialize FCM
+    await initializeFCM();
 
     // Seed vehicle data if needed
     await seedVehicles();
