@@ -499,7 +499,7 @@ const completeRide = async (req, res) => {
 
     // Send FCM notifications
     const customer = await User.findById(ride.customer);
-    const driver = await Driver.findById(driverId);
+   // const driver = await Driver.findById(driverId);
 
     // Notify customer
     if (customer && customer.fcmToken) {

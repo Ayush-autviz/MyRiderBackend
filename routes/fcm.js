@@ -8,9 +8,9 @@ const {
   sendRideNotification,
   testFCM
 } = require('../controllers/FCM');
-const { authenticateUser } = require('../middlewares/UserAuthentication');
-const { authenticateDriver } = require('../middlewares/DriverAuthentication');
-const { authenticateAdmin } = require('../middlewares/AdminAuthentication');
+const authenticateUser = require('../middlewares/UserAuthentication');
+const authenticateDriver = require('../middlewares/DriverAuthentication');
+const { authAdmin: authenticateAdmin } = require('../middlewares/AdminAuthentication');
 
 /**
  * @swagger
@@ -272,4 +272,5 @@ router.post('/send-to-all', authenticateAdmin, sendNotificationToAllUsers);
 router.post('/send-ride-notification', authenticateAdmin, sendRideNotification);
 
 module.exports = router;
+
 
