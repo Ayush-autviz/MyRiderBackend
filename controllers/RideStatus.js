@@ -116,9 +116,9 @@ const acceptRide = async (req, res) => {
       }, {
         rideId: rideId,
         type: 'ride_accepted',
-        driverId: driverId,
+        driverId: driverId.toString(),
         driverName: driver.firstName || 'Driver',
-        fare: ride.fare,
+        fare: ride.fare.toString(),
       });
     }
 
@@ -209,7 +209,7 @@ const driverArrived = async (req, res) => {
       }, {
         rideId: rideId,
         type: 'driver_arrived',
-        rideOtp: rideOtp,
+        rideOtp: rideOtp.toString(),
       });
     }
 
@@ -509,8 +509,8 @@ const completeRide = async (req, res) => {
       }, {
         rideId: rideId,
         type: 'ride_completed',
-        fare: ride.fare,
-        driverEarning: driverEarning,
+        fare: ride.fare.toString(),
+        driverEarning: driverEarning.toString(),
       });
     }
 
@@ -522,10 +522,10 @@ const completeRide = async (req, res) => {
       }, {
         rideId: rideId,
         type: 'ride_completed',
-        totalFare: ride.fare,
-        earning: driverEarning,
-        commission: commissionAmount,
-        newWalletBalance: driverWalletResult.newBalance,
+        totalFare: ride.fare.toString(),
+        earning: driverEarning.toString(),
+        commission: commissionAmount.toString(),
+        newWalletBalance: driverWalletResult.newBalance.toString(),
       });
     }
 

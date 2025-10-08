@@ -248,13 +248,37 @@ const testFCM = async (req, res) => {
   }
 };
 
+/**
+ * Debug Firebase configuration
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const debugFirebaseConfig = async (req, res) => {
+  try {
+    const config = fcmService.debugFirebaseConfig();
+    
+    res.json({
+      success: true,
+      message: 'Firebase configuration debug info',
+      data: config
+    });
+  } catch (error) {
+    console.error('Error debugging Firebase config:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   updateFCMToken,
   sendNotificationToUser,
   sendNotificationToMultipleUsers,
   sendNotificationToAllUsers,
   sendRideNotification,
-  testFCM
+  testFCM,
+  debugFirebaseConfig
 };
 
 

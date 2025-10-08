@@ -198,6 +198,8 @@ const createRide = async (req, res) => {
             },
           });
 
+          console.log("driver",driver)
+
           // Send socket event
           socket.to(`driver_${driver._id}`).emit("rideRequest", {
             rideId: ride._id,
@@ -210,14 +212,15 @@ const createRide = async (req, res) => {
 
           // Send FCM notification to driver
           if (driver.fcmToken) {
+            console.log("driver has fcm tokn");
             await fcmService.sendToToken(driver.fcmToken, {
               title: "New Ride Request",
               body: `You have a new ride request from ${user.firstName || 'Customer'}`,
             }, {
               rideId: ride._id.toString(),
               type: 'ride_requested',
-              customerId: user.id,
-              fare: ride.fare,
+              customerId: user.id.toString(),
+              fare: ride.fare.toString(),
               pickupLocation: JSON.stringify(ride.pickupLocation),
               destination: JSON.stringify(ride.destination),
             });

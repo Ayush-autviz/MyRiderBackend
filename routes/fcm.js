@@ -6,7 +6,8 @@ const {
   sendNotificationToMultipleUsers,
   sendNotificationToAllUsers,
   sendRideNotification,
-  testFCM
+  testFCM,
+  debugFirebaseConfig
 } = require('../controllers/FCM');
 const authenticateUser = require('../middlewares/UserAuthentication');
 const authenticateDriver = require('../middlewares/DriverAuthentication');
@@ -270,6 +271,39 @@ router.post('/send-to-all', authenticateAdmin, sendNotificationToAllUsers);
  *         description: Internal server error
  */
 router.post('/send-ride-notification', authenticateAdmin, sendRideNotification);
+
+/**
+ * @swagger
+ * /fcm/debug-config:
+ *   get:
+ *     summary: Debug Firebase configuration
+ *     description: Get Firebase project configuration details for troubleshooting
+ *     tags: [FCM]
+ *     responses:
+ *       200:
+ *         description: Firebase configuration debug info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     projectId:
+ *                       type: string
+ *                     serviceAccountEmail:
+ *                       type: string
+ *                     isInitialized:
+ *                       type: boolean
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/debug-config', debugFirebaseConfig);
 
 module.exports = router;
 
