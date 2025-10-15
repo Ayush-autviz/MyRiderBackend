@@ -6,6 +6,7 @@ const { googleMapsClient } = require('../config/googleMapsConfig');
  * @param {Object} destination - Destination coordinates {latitude, longitude}
  * @returns {Promise<number>} - Distance in meters
  */
+
 const calculateDistance = async (origin, destination) => {
   try {
     // Validate coordinates
