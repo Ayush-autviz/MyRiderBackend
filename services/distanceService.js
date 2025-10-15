@@ -1,98 +1,101 @@
 const { googleMapsClient } = require('../config/googleMapsConfig');
 
 /**
- * Calculate distance between two coordinates using Google Maps Distance Matrix API
- * @param {Object} origin - Origin coordinates {latitude, longitude}
- * @param {Object} destination - Destination coordinates {latitude, longitude}
+ * Calculate driving distance between two coordinates
+ * Falls back to walking mode, then haversine if needed
+ * @param {Object} origin - {latitude, longitude}
+ * @param {Object} destination - {latitude, longitude}
+ * @param {string} mode - Travel mode (driving, walking, bicycling, transit)
  * @returns {Promise<number>} - Distance in meters
  */
-
-const calculateDistance = async (origin, destination) => {
+const calculateDistance = async (origin, destination, mode = 'driving') => {
   try {
     // Validate coordinates
-    if (!origin || !destination) {
-      throw new Error('Origin and destination coordinates are required');
-    }
-
+    if (!origin || !destination) throw new Error('Origin and destination are required');
     if (!origin.latitude || !origin.longitude || !destination.latitude || !destination.longitude) {
-      throw new Error('Invalid coordinate format. Latitude and longitude are required for both origin and destination');
+      throw new Error('Invalid coordinate format');
     }
 
-    // Check if Google Maps API key is configured
-    if (!process.env.GOOGLE_MAPS_API_KEY) {
-      console.warn('GOOGLE_MAPS_API_KEY not found, falling back to basic calculation');
-      // Fallback to simple calculation if no API key (not accurate for long distances)
-      return calculateDistanceSimple(origin, destination);
+    // Validate coordinate ranges
+    if (Math.abs(origin.latitude) > 90 || Math.abs(destination.latitude) > 90) {
+      throw new Error('Latitude must be between -90 and 90');
     }
+    if (Math.abs(origin.longitude) > 180 || Math.abs(destination.longitude) > 180) {
+      throw new Error('Longitude must be between -180 and 180');
+    }
+
+    const originStr = `${origin.longitude},${origin.latitude}`;
+    const destStr = `${destination.longitude},${destination.latitude}`;
+
+    console.log(`Calculating distance: ${originStr} -> ${destStr} (${mode})`);
 
     const response = await googleMapsClient.distancematrix({
       params: {
-        origins: [`${origin.latitude},${origin.longitude}`],
-        destinations: [`${destination.latitude},${destination.longitude}`],
+        origins: [originStr],
+        destinations: [destStr],
         units: 'metric',
-        mode: 'driving',
+        mode,
         key: process.env.GOOGLE_MAPS_API_KEY,
       },
     });
 
-    // Check if the response is valid
-    if (response.data.status !== 'OK') {
-      console.error('Google Maps Distance Matrix API error:', response.data.error_message || response.data.status);
-      // Fallback to simple calculation
-      return calculateDistanceSimple(origin, destination);
-    }
+    // Log full response for debugging
+    console.log('API Response:', JSON.stringify(response.data, null, 2));
 
     const element = response.data.rows[0]?.elements[0];
-    if (!element || element.status !== 'OK') {
-      console.error('Distance Matrix API element error:', element?.status);
-      // Fallback to simple calculation
+    
+    if (!element) {
+      throw new Error('No element in API response');
+    }
+
+    if (element.status !== 'OK') {
+      console.warn(`Google Maps API (${mode}) status: ${element.status}`);
+
+      // Retry logic if ZERO_RESULTS for driving
+      if (element.status === 'ZERO_RESULTS' && mode === 'driving') {
+        console.log('Retrying with walking mode...');
+        return await calculateDistance(origin, destination, 'walking');
+      }
+
+      // If walking also fails, use Haversine
+      if (element.status === 'ZERO_RESULTS' && mode === 'walking') {
+        console.log('Walking mode also failed, using Haversine fallback');
+        return calculateDistanceSimple(origin, destination);
+      }
+
+      // For other errors, throw or fallback
+      console.log('Using Haversine fallback due to API error');
       return calculateDistanceSimple(origin, destination);
     }
 
-    // Return distance in meters
-    return element.distance.value;
-
+    console.log(`Distance calculated: ${element.distance.value} meters`);
+    return element.distance.value; // meters
   } catch (error) {
-    console.error('Error calculating distance with Google Maps API:', error.message);
-
-    // Fallback to simple calculation
-    try {
-      return calculateDistanceSimple(origin, destination);
-    } catch (fallbackError) {
-      console.error('Fallback distance calculation also failed:', fallbackError.message);
-      throw new Error('Unable to calculate distance');
-    }
+    console.error('Error calculating distance:', error.message);
+    console.log('Falling back to Haversine calculation');
+    return calculateDistanceSimple(origin, destination);
   }
 };
 
 /**
- * Simple distance calculation using Haversine formula (fallback)
- * @param {Object} origin - Origin coordinates {latitude, longitude}
- * @param {Object} destination - Destination coordinates {latitude, longitude}
- * @returns {number} - Distance in meters
+ * Simple Haversine fallback
  */
 const calculateDistanceSimple = (origin, destination) => {
-  const R = 6371; // Radius of the Earth in kilometers
-
-  const lat1Rad = (origin.latitude * Math.PI) / 180;
-  const lat2Rad = (destination.latitude * Math.PI) / 180;
-  const deltaLatRad = ((destination.latitude - origin.latitude) * Math.PI) / 180;
-  const deltaLngRad = ((destination.longitude - origin.longitude) * Math.PI) / 180;
+  const R = 6371; // Earth radius in km
+  const dLat = (destination.latitude - origin.latitude) * Math.PI / 180;
+  const dLon = (destination.longitude - origin.longitude) * Math.PI / 180;
+  const lat1 = origin.latitude * Math.PI / 180;
+  const lat2 = destination.latitude * Math.PI / 180;
 
   const a =
-    Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLngRad / 2) *
-      Math.sin(deltaLngRad / 2);
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  const distanceKm = R * c;
-  return distanceKm * 1000; // Convert to meters
+  const distance = R * c * 1000; // meters
+  
+  console.log(`Haversine distance: ${distance} meters`);
+  return distance;
 };
 
-module.exports = {
-  calculateDistance,
-  calculateDistanceSimple
-};
+module.exports = { calculateDistance, calculateDistanceSimple };

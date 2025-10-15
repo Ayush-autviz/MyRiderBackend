@@ -9,3 +9,4 @@ const googleMapsClient = new Client({});
 module.exports = {
   googleMapsClient
 };
+
