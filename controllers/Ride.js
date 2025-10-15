@@ -64,8 +64,8 @@ const createRide = async (req, res) => {
 
     // Calculate distance in kilometers
     const distanceMeters = geolib.getDistance(
-      normalizedPickup,
-      normalizedDestination
+      normalizedDestination,
+      normalizedPickup
     );
     const distanceKm = distanceMeters / 1000;
 

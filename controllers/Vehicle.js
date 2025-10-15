@@ -111,7 +111,7 @@ const calculateRidePrices = async (req, res) => {
     }
 
     // Calculate distance in kilometers
-    const distanceMeters = geolib.getDistance(normalizedPickup, normalizedDestination);
+    const distanceMeters = geolib.getDistance(normalizedDestination,normalizedPickup);
     const distanceKm = distanceMeters / 1000;
 
     // Get all vehicle types and their prices
