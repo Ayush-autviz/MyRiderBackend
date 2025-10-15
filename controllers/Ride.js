@@ -2,7 +2,7 @@ const Ride = require("../models/Ride");
 const User = require("../models/User");
 const Vehicle = require("../models/Vehicle");
 const Driver = require("../models/Driver");
-const geolib = require("geolib");
+const { calculateDistance } = require("../services/distanceService");
 const { StatusCodes } = require("http-status-codes");
 const { WalletService } = require("./Wallet");
 const fcmService = require("../services/fcmService");
@@ -63,9 +63,9 @@ const createRide = async (req, res) => {
     }
 
     // Calculate distance in kilometers
-    const distanceMeters = geolib.getDistance(
-      normalizedDestination,
-      normalizedPickup
+    const distanceMeters = await calculateDistance(
+      normalizedPickup,
+      normalizedDestination
     );
     const distanceKm = distanceMeters / 1000;
 

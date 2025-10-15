@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const geolib = require("geolib");
 const User = require("../models/User");
 const Ride = require("../models/Ride");
 const Driver = require("../models/Driver");

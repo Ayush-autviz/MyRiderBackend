@@ -1,4 +1,4 @@
-const geolib = require('geolib');
+const { calculateDistance } = require('../services/distanceService');
 const { StatusCodes } = require('http-status-codes');
 const Vehicle = require('../models/Vehicle');
 const { normalizeCoordinates, validateCoordinates } = require('../utils/coordinateHelpers');
@@ -111,7 +111,7 @@ const calculateRidePrices = async (req, res) => {
     }
 
     // Calculate distance in kilometers
-    const distanceMeters = geolib.getDistance(normalizedDestination,normalizedPickup);
+    const distanceMeters = await calculateDistance(normalizedPickup, normalizedDestination);
     const distanceKm = distanceMeters / 1000;
 
     // Get all vehicle types and their prices
