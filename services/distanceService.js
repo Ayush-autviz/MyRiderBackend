@@ -30,6 +30,7 @@ const calculateDistance = async (origin, destination) => {
         origins: [`${origin.latitude},${origin.longitude}`],
         destinations: [`${destination.latitude},${destination.longitude}`],
         units: 'metric',
+        mode: 'driving',
         key: process.env.GOOGLE_MAPS_API_KEY,
       },
     });
