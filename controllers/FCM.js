@@ -223,13 +223,15 @@ const testFCM = async (req, res) => {
     }
 
     const notification = {
-      title: 'Test Notification',
-      body: 'This is a test notification from MyRider Backend',
+      title: 'New Ride Request (Test)',
+      body: `You have a new ride request from Test Customer - This notification uses mytone sound`,
     };
 
     const data = {
-      type: 'test',
+      type: 'ride_requested',
       timestamp: new Date().toISOString(),
+      test: 'true',
+      sound: 'mytone'
     };
 
     const result = await fcmService.sendToToken(fcmToken, notification, data);

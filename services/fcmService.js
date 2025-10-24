@@ -93,7 +93,7 @@ class FCMService {
         android: {
           priority: 'high',
           notification: {
-            sound: 'default',
+            sound: 'mytone',
             channelId: 'default',
             priority: 'high',
           },
@@ -101,12 +101,16 @@ class FCMService {
         apns: {
           payload: {
             aps: {
-              sound: 'default',
+              sound: 'mytone',
               badge: 1,
             },
           },
         },
       };
+
+      console.log('Sending FCM notification with custom sound: mytone');
+      console.log('Notification title:', notification.title);
+      console.log('FCM Token (first 20 chars):', fcmToken.substring(0, 20) + '...');
 
       const response = await this.messaging.send(message);
 
@@ -171,7 +175,7 @@ class FCMService {
         android: {
           priority: 'high',
           notification: {
-            sound: 'default',
+            sound: 'mytone',
             channelId: 'default',
             priority: 'high',
           },
@@ -179,12 +183,16 @@ class FCMService {
         apns: {
           payload: {
             aps: {
-              sound: 'default',
+              sound: 'mytone',
               badge: 1,
             },
           },
         },
       };
+
+      console.log('Sending FCM multicast notification with custom sound: mytone');
+      console.log('Notification title:', notification.title);
+      console.log('Sending to', fcmTokens.length, 'tokens');
 
       const response = await this.messaging.sendMulticast(message);
       console.log(`Successfully sent message to ${response.successCount} devices`);
