@@ -515,19 +515,19 @@ const completeRide = async (req, res) => {
     }
 
     // Notify driver
-    if (driver && driver.fcmToken) {
-      await fcmService.sendToToken(driver.fcmToken, {
-        title: "Ride Completed",
-        body: `You earned $${driverEarning} from this ride`,
-      }, {
-        rideId: rideId,
-        type: 'ride_completed',
-        totalFare: ride.fare.toString(),
-        earning: driverEarning.toString(),
-        commission: commissionAmount.toString(),
-        newWalletBalance: driverWalletResult.newBalance.toString(),
-      });
-    }
+    // if (driver && driver.fcmToken) {
+    //   await fcmService.sendToToken(driver.fcmToken, {
+    //     title: "Ride Completed",
+    //     body: `You earned $${driverEarning} from this ride`,
+    //   }, {
+    //     rideId: rideId,
+    //     type: 'ride_completed',
+    //     totalFare: ride.fare.toString(),
+    //     earning: driverEarning.toString(),
+    //     commission: commissionAmount.toString(),
+    //     newWalletBalance: driverWalletResult.newBalance.toString(),
+    //   });
+    // }
 
     return res.status(StatusCodes.OK).json({
       success: true,
