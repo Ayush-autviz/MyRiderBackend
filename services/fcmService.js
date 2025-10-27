@@ -81,16 +81,13 @@ class FCMService {
 
       const message = {
         token: fcmToken,
-        // notification: {
-        //   title: notification.title,
-        //   body: notification.body,
-        //   imageUrl: notification.imageUrl || undefined,
-        // },
-        data: this.validateDataPayload({
-          ...data,
+        notification: {
           title: notification.title,
           body: notification.body,
           imageUrl: notification.imageUrl || undefined,
+        },
+        data: this.validateDataPayload({
+          ...data,
           timestamp: new Date().toISOString(),
         }),
         android: {
