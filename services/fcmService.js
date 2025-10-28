@@ -81,11 +81,11 @@ class FCMService {
 
       const message = {
         token: fcmToken,
-        // notification: {
-        //   title: notification.title,
-        //   body: notification.body,
-        //   imageUrl: notification.imageUrl || undefined,
-        // },
+        notification: {
+          title: notification.title,
+          body: notification.body,
+          imageUrl: notification.imageUrl || undefined,
+        },
         data: this.validateDataPayload({
           ...data,
           title: notification.title,
@@ -96,7 +96,7 @@ class FCMService {
           priority: 'high',
           notification: {
             sound: 'mytone',
-            channelId: 'default',
+            channelId: 'mytone',
             priority: 'high',
           },
         },
