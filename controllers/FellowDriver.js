@@ -351,7 +351,7 @@ const deleteFellowDriver = async (req, res) => {
 
     const fellowDriver = await FellowDriver.findOne({
       _id: fellowDriverId,
-      driver: driverId,
+     // driver: driverId,
       isActive: true,
     });
 
