@@ -301,7 +301,7 @@ const getRideById = async (req, res) => {
     console.log(rideId, "ride details id");
 
     const ride = await Ride.findById(rideId)
-      .populate("driver", "firstName lastName phone vehicleDetails documents")
+      .populate("driver", "firstName lastName phone vehicleDetails documents averageRating")
       .populate("fellowDriver", "name gender mobileNumber profilePhoto")
       .populate("vehicle");
 
@@ -340,7 +340,7 @@ const getRideById = async (req, res) => {
       felowDriver: ride.fellowDriver,
       createdAt: ride.createdAt,
       updatedAt: ride.updatedAt,
-      rating: ride.rating,
+      rating: ride.driver?.averageRating || 0,
     };
 
     res.status(StatusCodes.OK).json({
