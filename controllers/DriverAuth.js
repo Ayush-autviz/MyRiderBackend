@@ -6,25 +6,11 @@ function generateOTP() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Send OTP via Twilio
-const sendOtp = async (phone, otp) => {
-  const client = require("twilio")(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
+const smsPortalService = require("../services/smsPortalService");
 
-  try {
-    const message = await client.messages.create({
-      body: `Your verification code is: ${otp}. It expires in 2 minutes.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: phone,
-    });
-    console.log(`OTP sent successfully. SID: ${message.sid}`);
-    return message.sid;
-  } catch (error) {
-    console.error("Error sending OTP:", error);
-    throw new Error("Failed to send OTP");
-  }
+// Send OTP via SMSPortal
+const sendOtp = async (phone, otp) => {
+  return await smsPortalService.sendOtp(phone, otp);
 };
 
 const auth = async (req, res) => {

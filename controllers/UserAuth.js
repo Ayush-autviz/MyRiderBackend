@@ -7,25 +7,11 @@ function generateOTP() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Send OTP via Twilio
-const sendOtp = async (phone, otp) => {
-  const client = require("twilio")(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
+const smsPortalService = require("../services/smsPortalService");
 
-  try {
-    const message = await client.messages.create({
-      body: `Your verification code is: ${otp}. It expires in 2 minutes.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: phone,
-    });
-    console.log(`OTP sent successfully. SID: ${message.sid}`);
-    return message.sid;
-  } catch (error) {
-    console.error("Error sending OTP:", error);
-    throw new Error("Failed to send OTP");
-  }
+// Send OTP via SMSPortal
+const sendOtp = async (phone, otp) => {
+  return await smsPortalService.sendOtp(phone, otp);
 };
 
 // Authenticate user and send OTP
@@ -149,7 +135,7 @@ const register = async (req, res) => {
 const verifyOtp = async (req, res) => {
   const { otp, phone } = req.body;
 
-  console.log(phone,otp,'tsting')
+  console.log(phone, otp, 'tsting')
 
   if (!otp || !phone) {
     return res.status(StatusCodes.BAD_REQUEST).json({
@@ -273,7 +259,7 @@ const deleteUserAccount = async (req, res) => {
   try {
     const { phone } = req.body;
 
-    console.log("delete account body",req.body)
+    console.log("delete account body", req.body)
 
     if (!phone) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -310,13 +296,13 @@ const deleteUserAccount = async (req, res) => {
     // await Promise.all([
     //   // Delete all rides associated with this user
     //   Ride.deleteMany({ customer: user._id }),
-      
+
     //   // Delete all wallet transactions
     //   WalletTransaction.deleteMany({ user: user._id }),
-      
+
     //   // Delete all PayFast transactions
     //   PayFastTransaction.deleteMany({ user: user._id }),
-      
+
     //   // Delete all ratings given by this user
     //   Rating.deleteMany({ user: user._id }),
     // ]);
@@ -337,7 +323,7 @@ const deleteUserAccount = async (req, res) => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to delete user account",
-      error: error.message,ele
+      error: error.message, ele
     });
   }
 };
