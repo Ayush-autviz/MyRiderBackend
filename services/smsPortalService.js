@@ -12,8 +12,6 @@ const getAuthToken = async () => {
   const clientId = process.env.SMSPORTAL_CLIENT_ID;
   const secret = process.env.SMSPORTAL_SECRET;
 
-  console.log(clientId, secret)
-
   if (!clientId || !secret) {
     throw new Error("SMSPortal Client ID or Secret is not configured in env variables.");
   }
