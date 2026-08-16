@@ -24,8 +24,10 @@ const calculateDistance = async (origin, destination, mode = 'driving') => {
       throw new Error('Longitude must be between -180 and 180');
     }
 
-    const originStr = `${origin.longitude},${origin.latitude}`;
-    const destStr = `${destination.longitude},${destination.latitude}`;
+    // const originStr = `${origin.longitude},${origin.latitude}`;
+    // const destStr = `${destination.longitude},${destination.latitude}`;
+    const originStr = `${origin.latitude},${origin.longitude}`;
+    const destStr = `${destination.latitude},${destination.longitude}`;
 
     console.log(`Calculating distance: ${originStr} -> ${destStr} (${mode})`);
 
@@ -43,7 +45,7 @@ const calculateDistance = async (origin, destination, mode = 'driving') => {
     console.log('API Response:', JSON.stringify(response.data, null, 2));
 
     const element = response.data.rows[0]?.elements[0];
-    
+
     if (!element) {
       throw new Error('No element in API response');
     }
@@ -93,7 +95,7 @@ const calculateDistanceSimple = (origin, destination) => {
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c * 1000; // meters
-  
+
   console.log(`Haversine distance: ${distance} meters`);
   return distance;
 };
