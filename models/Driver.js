@@ -205,8 +205,8 @@ const driverSchema = new mongoose.Schema(
       },
     ],
     fcmToken: {
-      type: String,
-      trim: true,
+      type: [String],
+      default: [],
     },
     walletAmount: {
       type: Number,

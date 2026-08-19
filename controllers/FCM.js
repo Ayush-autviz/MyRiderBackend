@@ -20,17 +20,24 @@ const updateFCMToken = async (req, res) => {
       });
     }
 
+    let updateQuery;
+    if (Array.isArray(fcmToken)) {
+      updateQuery = { $addToSet: { fcmToken: { $each: fcmToken } } };
+    } else {
+      updateQuery = { $addToSet: { fcmToken: fcmToken } };
+    }
+
     let user;
     if (userType === 'customer') {
       user = await User.findByIdAndUpdate(
         userId,
-        { fcmToken },
+        updateQuery,
         { new: true }
       );
     } else if (userType === 'driver') {
       user = await Driver.findByIdAndUpdate(
         userId,
-        { fcmToken },
+        updateQuery,
         { new: true }
       );
     } else {
@@ -273,8 +280,68 @@ const debugFirebaseConfig = async (req, res) => {
   }
 };
 
+/**
+ * Remove FCM token for a user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const removeFCMToken = async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    const userId = req.user.id;
+    const userType = req.user.role;
+
+    if (!fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'FCM token is required'
+      });
+    }
+
+    let user;
+    if (userType === 'customer') {
+      user = await User.findByIdAndUpdate(
+        userId,
+        { $pull: { fcmToken } },
+        { new: true }
+      );
+    } else if (userType === 'driver') {
+      user = await Driver.findByIdAndUpdate(
+        userId,
+        { $pull: { fcmToken } },
+        { new: true }
+      );
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user type'
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'FCM token removed successfully',
+      data: { fcmToken: user.fcmToken }
+    });
+  } catch (error) {
+    console.error('Error removing FCM token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   updateFCMToken,
+  removeFCMToken,
   sendNotificationToUser,
   sendNotificationToMultipleUsers,
   sendNotificationToAllUsers,

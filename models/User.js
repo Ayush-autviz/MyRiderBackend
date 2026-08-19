@@ -58,8 +58,8 @@ const userSchema = new Schema(
       default: null,
     },
     fcmToken: {
-      type: String,
-      trim: true,
+      type: [String],
+      default: [],
     },
   },
   {

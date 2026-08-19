@@ -67,8 +67,19 @@ class FCMService {
   async sendToToken(fcmToken, notification, data = {}) {
     console.log("sending notification")
     try {
-      if (!fcmToken) {
+      if (!fcmToken || (Array.isArray(fcmToken) && fcmToken.length === 0)) {
         throw new Error('FCM token is required');
+      }
+
+      if (Array.isArray(fcmToken)) {
+        const validTokens = fcmToken.filter(token => token && typeof token === 'string' && token.includes(':'));
+        if (validTokens.length === 0) {
+          return { success: false, error: 'No valid FCM tokens found in array' };
+        }
+        if (validTokens.length === 1) {
+          return await this.sendToToken(validTokens[0], notification, data);
+        }
+        return await this.sendToMultipleTokens(validTokens, notification, data);
       }
 
       // Log FCM token for debugging (first 20 chars only for security)
@@ -235,7 +246,7 @@ class FCMService {
         throw new Error('User not found');
       }
 
-      if (!user.fcmToken) {
+      if (!user.fcmToken || (Array.isArray(user.fcmToken) && user.fcmToken.length === 0)) {
         throw new Error('User does not have an FCM token');
       }
 
@@ -257,14 +268,19 @@ class FCMService {
     try {
       let users;
       if (userType === 'user') {
-        users = await User.find({ fcmToken: { $exists: true, $ne: null } });
+        users = await User.find({ fcmToken: { $exists: true, $ne: null, $ne: [] } });
       } else if (userType === 'driver') {
-        users = await Driver.find({ fcmToken: { $exists: true, $ne: null } });
+        users = await Driver.find({ fcmToken: { $exists: true, $ne: null, $ne: [] } });
       } else {
         throw new Error('Invalid user type. Must be "user" or "driver"');
       }
 
-      const fcmTokens = users.map(user => user.fcmToken).filter(token => token);
+      const fcmTokens = users.flatMap(user => {
+        if (Array.isArray(user.fcmToken)) {
+          return user.fcmToken;
+        }
+        return user.fcmToken ? [user.fcmToken] : [];
+      }).filter(token => token);
       
       if (fcmTokens.length === 0) {
         return { success: true, message: 'No users with FCM tokens found' };

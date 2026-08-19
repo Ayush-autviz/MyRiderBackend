@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   updateFCMToken,
+  removeFCMToken,
   sendNotificationToUser,
   sendNotificationToMultipleUsers,
   sendNotificationToAllUsers,
@@ -139,6 +140,8 @@ const { authAdmin: authenticateAdmin } = require('../middlewares/AdminAuthentica
  */
 router.post('/update-token', authenticateUser, updateFCMToken);
 router.post('/driver/update-token', authenticateDriver, updateFCMToken);
+router.post('/delete-token', authenticateUser, removeFCMToken);
+router.post('/driver/delete-token', authenticateDriver, removeFCMToken);
 
 /**
  * @swagger
