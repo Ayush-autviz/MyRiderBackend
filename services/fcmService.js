@@ -72,7 +72,7 @@ class FCMService {
       }
 
       if (Array.isArray(fcmToken)) {
-        const validTokens = fcmToken.filter(token => token && typeof token === 'string' && token.includes(':'));
+        const validTokens = fcmToken.filter(token => token && typeof token === 'string' && token.trim().length > 0);
         if (validTokens.length === 0) {
           return { success: false, error: 'No valid FCM tokens found in array' };
         }
@@ -86,7 +86,7 @@ class FCMService {
       console.log(`FCM Token (first 20 chars): ${fcmToken.substring(0, 20)}...`);
       
       // Validate FCM token format
-      if (!fcmToken.includes(':')) {
+      if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim().length === 0) {
         throw new Error('Invalid FCM token format');
       }
 
@@ -207,7 +207,7 @@ class FCMService {
       console.log('Notification title:', notification.title);
       console.log('Sending to', fcmTokens.length, 'tokens');
 
-      const response = await this.messaging.sendMulticast(message);
+      const response = await this.messaging.sendEachForMulticast(message);
       console.log(`Successfully sent message to ${response.successCount} devices`);
       console.log(`Failed to send to ${response.failureCount} devices`);
       
