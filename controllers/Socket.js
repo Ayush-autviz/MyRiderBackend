@@ -136,7 +136,7 @@ const handleSocketConnection = (io) => {
           await Driver.findByIdAndUpdate(user.id, {
             currentLocation: {
               type: "Point",
-              coordinates: [coords.latitude, coords.longitude],
+              coordinates: [coords.longitude, coords.latitude],
               lastUpdated: new Date(),
             },
             lastHeartbeat: new Date(),
