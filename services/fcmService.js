@@ -112,10 +112,19 @@ class FCMService {
           },
         },
         apns: {
+          headers: {
+            'apns-priority': '10',
+            'apns-push-type': 'alert',
+          },
           payload: {
             aps: {
-              sound: 'mytone',
+              alert: {
+                title: notification.title,
+                body: notification.body,
+              },
+              sound: 'tone.caf',
               badge: 1,
+              'content-available': 1,
             },
           },
         },
@@ -194,10 +203,19 @@ class FCMService {
           },
         },
         apns: {
+          headers: {
+            'apns-priority': '10',
+            'apns-push-type': 'alert',
+          },
           payload: {
             aps: {
-              sound: 'mytone',
+              alert: {
+                title: notification.title,
+                body: notification.body,
+              },
+              sound: 'tone.caf',
               badge: 1,
+              'content-available': 1,
             },
           },
         },
