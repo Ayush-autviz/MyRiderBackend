@@ -14,7 +14,7 @@ class FCMService {
    */
   validateDataPayload(data) {
     const validatedData = {};
-
+    
     for (const [key, value] of Object.entries(data)) {
       if (value === null || value === undefined) {
         validatedData[key] = '';
@@ -26,7 +26,7 @@ class FCMService {
         validatedData[key] = String(value);
       }
     }
-
+    
     return validatedData;
   }
 
@@ -38,11 +38,11 @@ class FCMService {
     try {
       const app = this.messaging.app;
       const projectId = app.options.projectId;
-
+      
       console.log('Firebase Configuration Debug:');
       console.log(`Project ID: ${projectId}`);
       console.log(`Service Account Email: ${app.options.credential?.clientEmail || 'Not available'}`);
-
+      
       return {
         projectId,
         serviceAccountEmail: app.options.credential?.clientEmail || 'Not available',
@@ -84,7 +84,7 @@ class FCMService {
 
       // Log FCM token for debugging (first 20 chars only for security)
       console.log(`FCM Token (first 20 chars): ${fcmToken.substring(0, 20)}...`);
-
+      
       // Validate FCM token format
       if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim().length === 0) {
         throw new Error('Invalid FCM token format');
@@ -107,22 +107,14 @@ class FCMService {
           priority: 'high',
           notification: {
             sound: 'mytone',
-            channelId: 'default',
+            channelId: 'mytone',
             priority: 'high',
           },
         },
         apns: {
-          headers: {
-            'apns-priority': '10',
-            'apns-push-type': 'alert',
-          },
           payload: {
             aps: {
-              alert: {
-                title: notification.title,
-                body: notification.body,
-              },
-              sound: 'tone.caf',
+              sound: 'mytone',
               badge: 1,
             },
           },
@@ -139,32 +131,32 @@ class FCMService {
       return { success: true, messageId: response };
     } catch (error) {
       console.error('Error sending FCM message:', error);
-
+      
       // Handle specific FCM errors
       if (error.code === 'messaging/sender-id-mismatch') {
         console.error('SenderId mismatch error - FCM token was generated with a different SenderId');
         console.error('Please ensure the client app is using the same Firebase project as the server');
-        return {
-          success: false,
+        return { 
+          success: false, 
           error: 'SenderId mismatch - FCM token was generated with a different SenderId. Please update the client app with the correct Firebase configuration.',
           code: 'SENDER_ID_MISMATCH'
         };
       } else if (error.code === 'messaging/invalid-registration-token') {
         console.error('Invalid FCM token - token may be expired or invalid');
-        return {
-          success: false,
+        return { 
+          success: false, 
           error: 'Invalid FCM token - please refresh the token on the client side',
           code: 'INVALID_TOKEN'
         };
       } else if (error.code === 'messaging/registration-token-not-registered') {
         console.error('FCM token not registered - token may have been unregistered');
-        return {
-          success: false,
+        return { 
+          success: false, 
           error: 'FCM token not registered - please refresh the token on the client side',
           code: 'TOKEN_NOT_REGISTERED'
         };
       }
-
+      
       return { success: false, error: error.message, code: error.code || 'UNKNOWN_ERROR' };
     }
   }
@@ -197,22 +189,14 @@ class FCMService {
           priority: 'high',
           notification: {
             sound: 'mytone',
-            channelId: 'mytone',
+            channelId: 'default',
             priority: 'high',
           },
         },
         apns: {
-          headers: {
-            'apns-priority': '10',
-            'apns-push-type': 'alert',
-          },
           payload: {
             aps: {
-              alert: {
-                title: notification.title,
-                body: notification.body,
-              },
-              sound: 'tone.caf',
+              sound: 'mytone',
               badge: 1,
             },
           },
@@ -226,7 +210,7 @@ class FCMService {
       const response = await this.messaging.sendEachForMulticast(message);
       console.log(`Successfully sent message to ${response.successCount} devices`);
       console.log(`Failed to send to ${response.failureCount} devices`);
-
+      
       return {
         success: true,
         successCount: response.successCount,
@@ -297,7 +281,7 @@ class FCMService {
         }
         return user.fcmToken ? [user.fcmToken] : [];
       }).filter(token => token);
-
+      
       if (fcmTokens.length === 0) {
         return { success: true, message: 'No users with FCM tokens found' };
       }
@@ -320,7 +304,7 @@ class FCMService {
     try {
       const Ride = require('../models/Ride');
       const ride = await Ride.findById(rideId).populate('user driver');
-
+      
       if (!ride) {
         throw new Error('Ride not found');
       }
