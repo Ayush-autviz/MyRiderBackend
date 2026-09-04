@@ -197,7 +197,7 @@ class FCMService {
           priority: 'high',
           notification: {
             sound: 'mytone',
-            channelId: 'default',
+            channelId: 'mytone',
             priority: 'high',
           },
         },
