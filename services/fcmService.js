@@ -124,7 +124,9 @@ class FCMService {
               },
               sound: 'tone.caf',
               badge: 1,
-              'content-available': 1,
+              // NOTE: Do NOT set content-available: 1 here when also sending a notification object.
+              // Combining both causes APNs to deliver as a silent background push,
+              // which bypasses React Native Firebase's onMessage foreground handler.
             },
           },
         },
@@ -215,7 +217,7 @@ class FCMService {
               },
               sound: 'tone.caf',
               badge: 1,
-              'content-available': 1,
+              // NOTE: Do NOT set content-available: 1 here when also sending a notification object.
             },
           },
         },

@@ -50,6 +50,8 @@ const startHeartbeatChecker = (io) => {
         return;
       }
 
+      // Automatic force-offline condition disabled: drivers are kept enabled/online always.
+      /*
       console.log(
         `Found ${inactiveDrivers.length} inactive drivers to force offline`
       );
@@ -91,6 +93,8 @@ const startHeartbeatChecker = (io) => {
       console.log(
         `Successfully forced ${successCount}/${inactiveDrivers.length} inactive drivers offline`
       );
+      */
+      console.log(`Heartbeat check completed for ${onlineDrivers.length} online drivers. Drivers remain online.`);
     } catch (error) {
       console.error("Error in heartbeat checker cron job:", error);
     }
