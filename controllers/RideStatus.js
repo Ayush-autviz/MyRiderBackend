@@ -93,7 +93,7 @@ const acceptRide = async (req, res) => {
     // Notify customer via socket
     if (req.io) {
       const driverDetails = await Driver.findById(driverId).select(
-        "firstName lastName vehicleDetails currentLocation"
+        "firstName lastName phone vehicleDetails currentLocation averageRating profilePhoto"
       );
 
       req.io.to(`customer_${ride.customer}`).emit("rideAccepted", {

@@ -338,9 +338,10 @@ const getRideById = async (req, res) => {
       status: ride.status,
       driver: ride.driver,
       felowDriver: ride.fellowDriver,
+      fellowDriver: ride.fellowDriver,
       createdAt: ride.createdAt,
       updatedAt: ride.updatedAt,
-      rating: ride.driver?.averageRating || 0,
+      rating: typeof ride.driver?.averageRating === 'number' ? ride.driver.averageRating : 5.0,
     };
 
     res.status(StatusCodes.OK).json({
@@ -363,7 +364,7 @@ const getRideById = async (req, res) => {
 const getUserRides = async (req, res) => {
   try {
     const rides = await Ride.find({ customer: req.user.id })
-      .populate("driver", "firstName lastName phone vehicleDetails")
+      .populate("driver", "firstName lastName phone vehicleDetails averageRating profilePhoto")
       .populate("vehicle")
       .sort({ createdAt: -1 });
 
