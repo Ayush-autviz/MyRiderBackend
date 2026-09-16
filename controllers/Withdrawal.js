@@ -38,7 +38,7 @@ const createWithdrawalRequest = async (req, res) => {
     if (amount < 10) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: 'Minimum withdrawal amount is $10'
+        message: 'Minimum withdrawal amount is R10'
       });
     }
 
@@ -54,7 +54,7 @@ const createWithdrawalRequest = async (req, res) => {
     if (driver.walletAmount < amount) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: `Insufficient wallet balance. Available: $${driver.walletAmount}, Requested: $${amount}`
+        message: `Insufficient wallet balance. Available: R${driver.walletAmount}, Requested: R${amount}`
       });
     }
 
