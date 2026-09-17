@@ -77,7 +77,7 @@ const createRide = async (req, res) => {
     if (user.walletAmount < fare) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: `Insufficient wallet balance. Required: $${fare}, Available: $${user.walletAmount}`,
+        message: `Insufficient wallet balance. Required: R${fare.toFixed(2)}, Available: R${user.walletAmount.toFixed(2)}`,
         data: {
           requiredAmount: fare,
           availableBalance: user.walletAmount,
@@ -198,7 +198,7 @@ const createRide = async (req, res) => {
             },
           });
 
-          console.log("driver",driver)
+          console.log("driver", driver)
 
           // Send socket event
           socket.to(`driver_${driver._id}`).emit("rideRequest", {
@@ -326,11 +326,11 @@ const getRideById = async (req, res) => {
       destination: ride.destination,
       vehicle: ride.vehicle
         ? {
-            id: ride.vehicle._id,
-            type: ride.vehicle.type,
-            description: ride.vehicle.description,
-            pricePerKm: ride.vehicle.pricePerKm,
-          }
+          id: ride.vehicle._id,
+          type: ride.vehicle.type,
+          description: ride.vehicle.description,
+          pricePerKm: ride.vehicle.pricePerKm,
+        }
         : null,
       rideOtp: ride.rideOtp,
       distance: ride.distance,
@@ -376,11 +376,11 @@ const getUserRides = async (req, res) => {
         destination: ride.destination,
         vehicle: ride.vehicle
           ? {
-              id: ride.vehicle._id,
-              type: ride.vehicle.type,
-              description: ride.vehicle.description,
-              pricePerKm: ride.vehicle.pricePerKm,
-            }
+            id: ride.vehicle._id,
+            type: ride.vehicle.type,
+            description: ride.vehicle.description,
+            pricePerKm: ride.vehicle.pricePerKm,
+          }
           : null,
         distance: ride.distance,
         fare: ride.fare,
@@ -427,11 +427,11 @@ const getDriverRides = async (req, res) => {
         destination: ride.destination,
         vehicle: ride.vehicle
           ? {
-              id: ride.vehicle._id,
-              type: ride.vehicle.type,
-              description: ride.vehicle.description,
-              pricePerKm: ride.vehicle.pricePerKm,
-            }
+            id: ride.vehicle._id,
+            type: ride.vehicle.type,
+            description: ride.vehicle.description,
+            pricePerKm: ride.vehicle.pricePerKm,
+          }
           : null,
         distance: ride.distance,
         fare: ride.fare,

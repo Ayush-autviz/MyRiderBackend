@@ -54,7 +54,7 @@ const createWithdrawalRequest = async (req, res) => {
     if (driver.walletAmount < amount) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: `Insufficient wallet balance. Available: R${driver.walletAmount}, Requested: R${amount}`
+        message: `Insufficient wallet balance. Available: R${driver.walletAmount.toFixed(2)}, Requested: R${amount.toFixed(2)}`
       });
     }
 

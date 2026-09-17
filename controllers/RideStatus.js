@@ -51,7 +51,7 @@ const acceptRide = async (req, res) => {
     if (user.walletAmount < ride.fare) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         success: false,
-        message: `Insufficient wallet balance. Required: $${ride.fare}, Available: $${user.walletAmount}`,
+        message: `Insufficient wallet balance. Required: R${ride.fare.toFixed(2)}, Available: R${user.walletAmount.toFixed(2)}`,
         data: {
           requiredAmount: ride.fare,
           availableBalance: user.walletAmount,
@@ -499,7 +499,7 @@ const completeRide = async (req, res) => {
 
     // Send FCM notifications
     const customer = await User.findById(ride.customer);
-   // const driver = await Driver.findById(driverId);
+    // const driver = await Driver.findById(driverId);
 
     // Notify customer
     if (customer && customer.fcmToken) {
@@ -518,7 +518,7 @@ const completeRide = async (req, res) => {
     // if (driver && driver.fcmToken) {
     //   await fcmService.sendToToken(driver.fcmToken, {
     //     title: "Ride Completed",
-    //     body: `You earned $${driverEarning} from this ride`,
+    //     body: `You earned R${driverEarning} from this ride`,
     //   }, {
     //     rideId: rideId,
     //     type: 'ride_completed',
